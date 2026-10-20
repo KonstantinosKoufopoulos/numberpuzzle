@@ -26,6 +26,7 @@ class SolveResult {
     this.moves = const [],
     this.clearedCells = const {},
     this.nodes = 0,
+    this.clearOrder = const [],
   });
   final bool solvable;
 
@@ -36,6 +37,9 @@ class SolveResult {
   /// Indices (on the starting board) of original cells whose numbers are
   /// cleared along the line; the generator places stars/grass only here.
   final Set<int> clearedCells;
+
+  /// Same cells as [clearedCells], in the order they are cleared.
+  final List<int> clearOrder;
 
   /// Search nodes expanded.
   final int nodes;
@@ -192,6 +196,7 @@ class DfsSolver implements Solver {
       moves: ok ? List.unmodifiable(path) : const [],
       clearedCells: ok ? Set.unmodifiable(cleared.toSet()) : const {},
       nodes: nodes,
+      clearOrder: ok ? List.unmodifiable(cleared) : const [],
     );
   }
 
@@ -297,4 +302,65 @@ class DfsSolver implements Solver {
     score -= dist / (board.length + 1);
     return score;
   }
+}
+
+/// Outcome of [shortWinCheck].
+enum ShortWinCheck { winnableWithin, notWinnableWithin, timedOut }
+
+/// Depth-limited search: can [goals] be met with at most [maxPairs] pairs
+/// (plus up to [addNumbersLimit] free Add numbers, no boosters)?
+///
+/// Used by the generator's `minPairs` difficulty check (generator/CI only,
+/// never on device): a level is accepted only if this returns
+/// [ShortWinCheck.notWinnableWithin] for `minPairs - 1`. Memo on board key +
+/// progress + adds, storing the largest remaining depth already explored.
+/// Returns [ShortWinCheck.timedOut] when [timeout] elapses (caller rejects
+/// and reseeds).
+ShortWinCheck shortWinCheck(
+  Board board,
+  List<Goal> goals,
+  int maxPairs, {
+  int addNumbersLimit = solverAddLimit,
+  Duration timeout = const Duration(seconds: 2),
+}) {
+  final sw = Stopwatch()..start();
+  final memo = <String, int>{};
+  var nodes = 0;
+  var timedOut = false;
+
+  bool dfs(_Node s, int depthLeft) {
+    if (s.progress.isComplete) return true;
+    if (depthLeft <= 0 && s.adds >= addNumbersLimit) return false;
+    if ((++nodes & 255) == 0 && sw.elapsed > timeout) {
+      timedOut = true;
+      return false;
+    }
+    if (timedOut) return false;
+    final key = DfsSolver._key(s);
+    final prev = memo[key];
+    if (prev != null && prev >= depthLeft) return false;
+    memo[key] = depthLeft;
+    if (DfsSolver._dead(s, addNumbersLimit)) return false;
+    if (depthLeft > 0) {
+      for (final (a, b) in fastValidPairs(s.board)) {
+        final (r, ids) = _applyWithIds(s.board, s.ids, a, b);
+        final prog = s.progress.copy()..onPair(r);
+        if (dfs(_Node(r.board, ids, prog, s.adds), depthLeft - 1)) return true;
+        if (timedOut) return false;
+      }
+    }
+    if (s.adds < addNumbersLimit) {
+      final nb = addNumbers(s.board);
+      if (nb.length != s.board.length &&
+          dfs(_Node(nb, _idsAfterAdd(s.board, s.ids, nb), s.progress, s.adds + 1), depthLeft)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  final root = _Node(board, List<int>.generate(board.length, (i) => i), GoalProgress(goals), 0);
+  final found = dfs(root, maxPairs);
+  if (found) return ShortWinCheck.winnableWithin;
+  return timedOut ? ShortWinCheck.timedOut : ShortWinCheck.notWinnableWithin;
 }

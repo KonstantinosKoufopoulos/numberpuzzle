@@ -88,3 +88,8 @@ unknown `gift`/`introduces`/goal type rejected.
 * Generator also keeps slime away from other slime and ice and out of
   corners (so it can always be uncovered). Seeds actually used per level are
   in `docs/generated-seeds.md`.
+* `minPairs` (generator option, default 0 = off): boards whose goals can be
+  met in fewer pairs are rejected. Checked with `shortWinCheck`, a
+  depth-limited DFS with a memo on board key (not an exhaustive proof) and a
+  per-board timeout (`minPairsTimeout`, default 2 s); a timeout rejects the
+  board and reseeds. Generator/CI only, never on device.

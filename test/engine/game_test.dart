@@ -320,6 +320,19 @@ void main() {
       expect(s.solve(b, goals, addNumbersLimit: 3).solvable, isTrue);
       expect(solverAddLimit, 3);
     });
+    test('shortWinCheck is depth-limited', () {
+      final b = Board.fromRows([
+        [9, 6, 3, 7, 4, 1],
+      ]);
+      const goals = [Goal(GoalType.number, 1, value: 9)];
+      expect(shortWinCheck(b, goals, 2, addNumbersLimit: 0), ShortWinCheck.notWinnableWithin);
+      expect(shortWinCheck(b, goals, 3, addNumbersLimit: 0), ShortWinCheck.winnableWithin);
+      final big = Board(9, [for (var i = 0; i < 81; i++) Cell.n(1 + (i * 7) % 9)]);
+      expect(
+        shortWinCheck(big, const [Goal(GoalType.number, 60, value: 1)], 40, timeout: Duration.zero),
+        ShortWinCheck.timedOut,
+      );
+    });
     test('clearedCells refer to original indices', () {
       final b = Board.fromRows([
         [2, 8, 5],

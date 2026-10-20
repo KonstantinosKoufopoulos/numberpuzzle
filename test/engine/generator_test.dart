@@ -28,6 +28,14 @@ void main() {
     }
   });
 
+  test('minPairs rejects too-short boards and reseeds', () {
+    final l = pack.levels[6]; // level 7: 3 stars, trivially short by default
+    const strict = SeededBoardGenerator(minPairs: 3);
+    final g = strict.generateDetailed(l);
+    expect(shortWinCheck(g.board, l.goals, 2), ShortWinCheck.notWinnableWithin);
+    expect(g.solution.moves.whereType<PairMove>().length, greaterThanOrEqualTo(3));
+  });
+
   test(
     'all 30 levels generate, satisfy constraints and are solvable (< 30 s)',
     () {

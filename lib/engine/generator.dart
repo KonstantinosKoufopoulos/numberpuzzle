@@ -71,9 +71,21 @@ class GeneratedLevel {
 }
 
 class SeededBoardGenerator implements BoardGenerator {
-  const SeededBoardGenerator({this.maxReseeds = 50, this.solver = const DfsSolver(nodeBudget: 20000)});
+  const SeededBoardGenerator({
+    this.maxReseeds = 50,
+    this.solver = const DfsSolver(nodeBudget: 20000),
+    this.minPairs = 0,
+    this.minPairsTimeout = const Duration(seconds: 2),
+  });
   final int maxReseeds;
   final DfsSolver solver;
+
+  /// Difficulty floor: reject boards whose goals can be met with fewer than
+  /// [minPairs] pairs. 0 disables the check. Checked with the depth-limited
+  /// [shortWinCheck] (memo, no exhaustive proof); a timeout after
+  /// [minPairsTimeout] rejects the board and reseeds. Generator/CI only.
+  final int minPairs;
+  final Duration minPairsTimeout;
 
   @override
   Board generate(Level level) => generateDetailed(level).board;
@@ -177,7 +189,9 @@ class SeededBoardGenerator implements BoardGenerator {
     final phaseGoals = <Goal>[
       for (final g in level.goals)
         if (g.type != GoalType.star && g.type != GoalType.grass) g,
-      if (sg > 0) Goal(GoalType.star, sg),
+      // With a minPairs floor, clear extra cells so stars/grass can sit on
+      // the late part of the line.
+      if (sg > 0) Goal(GoalType.star, sg > 2 * minPairs ? sg : 2 * minPairs),
     ];
     final marked = [
       for (var i = 0; i < n; i++) kind[i] == null ? cells[i].copyWith(item: CellItem.star) : cells[i],
@@ -186,8 +200,20 @@ class SeededBoardGenerator implements BoardGenerator {
     if (!p1.solvable) return null;
 
     // Place stars and grass on cleared plain cells.
-    final eligible = p1.clearedCells.where((i) => kind[i] == null).toList()..sort();
-    rng.shuffle(eligible);
+    var eligible = [
+      for (final i in p1.clearOrder)
+        if (kind[i] == null) i,
+    ];
+    if (minPairs > 1) {
+      // Latest-cleared cells first (shuffled within the late half).
+      eligible = eligible.reversed.toList();
+      final late = eligible.sublist(0, eligible.length < 2 * sg ? eligible.length : 2 * sg);
+      rng.shuffle(late);
+      eligible = [...late, ...eligible.sublist(late.length)];
+    } else {
+      eligible.sort();
+      rng.shuffle(eligible);
+    }
     if (eligible.length < sg) return null;
     final finalCells = List<Cell>.of(cells);
     for (var k = 0; k < l.stars; k++) {
@@ -201,6 +227,11 @@ class SeededBoardGenerator implements BoardGenerator {
     // Verify the real board with the solver (independent proof).
     final p2 = sg > 0 ? solver.solve(board, level.goals) : p1;
     if (!p2.solvable) return null;
+    if (minPairs > 1 &&
+        shortWinCheck(board, level.goals, minPairs - 1, timeout: minPairsTimeout) !=
+            ShortWinCheck.notWinnableWithin) {
+      return null;
+    }
     return (board, p2);
   }
 
