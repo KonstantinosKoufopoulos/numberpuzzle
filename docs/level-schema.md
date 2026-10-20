@@ -109,9 +109,8 @@ unknown `gift`/`introduces`/goal type rejected.
   `docs/level-metrics.md` (currently: **level 22**, 6 of 7).
 * `requireGreedyWinLevels` (default {1-6, 15, 25}, revertible flag): the
   greedy player must win without boosters within the level's 5 Add numbers.
-* Known failure: **level 14** (6 stars + 12 grass on 7x6) cannot get 18
-  late, non-first-pair cells within budget -> explicit error; needs a
-  design change (fewer stars/grass or a bigger board).
+* Level 14 was reduced to star 6 + grass 6 (from grass 12) so it satisfies
+  these rules; all 30 levels must generate (CI asserts no errors).
 * Per-level deterministic cap: `maxReseeds` (50 per placement mode) and
   `levelNodeBudget` (3,000,000 solver/check nodes summed over attempts).
 * `greedyPairsToWin` (solver.dart) is a cheap difficulty metric; see

@@ -19,7 +19,7 @@
 | 11 | 87111 | 3 | yes | >5 (budget at 6) | 19 | 4 / 4 met |
 | 12 | 95060 | 33 | yes | >5 (budget at 6) | 21 | 4 / 4 met |
 | 13 | 102963 | 17 | yes | >6 (budget at 7) | stuck | 4 / 4 met |
-| 14 | FAILED | – | – | – | – | Level 14: no valid board within 50 seeds / 3000000 nodes (late placement, first-pair rule, goal-minPairs >= 3; no fallback) |
+| 14 | 110866 | 1 | yes | >4 (budget at 5) | 36 | 4 / 4 met |
 | 15 | 118785 | 1 | yes | >3 (budget at 4) | 13 | 4 / 4 met |
 | 16 | 126704 | 1 | yes | 6 | stuck | – |
 | 17 | 134624 | 2 | yes | >3 (budget at 4) | 25 | 4 / 4 met |

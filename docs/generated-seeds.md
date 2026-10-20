@@ -19,7 +19,7 @@ Regenerate with `dart run tool/gen_report.dart`; checked by
 | 11 | 87109 | 87111 | 3 | 17 |
 | 12 | 95028 | 95060 | 33 | 23 |
 | 13 | 102947 | 102963 | 17 | 34 |
-| 14 | 110866 | FAILED | – | Level 14: no valid board within 50 seeds / 3000000 nodes (late placement, first-pair rule, goal-minPairs >= 3; no fallback) |
+| 14 | 110866 | 110866 | 1 | 27 |
 | 15 | 118785 | 118785 | 1 | 10 |
 | 16 | 126704 | 126704 | 1 | 34 |
 | 17 | 134623 | 134624 | 2 | 29 |

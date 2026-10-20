@@ -18,10 +18,6 @@ void main() {
   const gen = SeededBoardGenerator();
   // Generated once (timed) and shared by the tests below.
   final generated = <int, GeneratedLevel>{};
-  // Levels that cannot satisfy the rules within budget (explicit error, no
-  // fallback). See docs/generated-seeds.md. L14: 6 stars + 12 grass need 18
-  // late, non-first-pair cells on a 7x6 board.
-  const knownFailures = {14};
   final errors = <int, StateError>{};
   var generateMs = 0;
   setUpAll(() {
@@ -79,11 +75,9 @@ void main() {
     timeout: const Timeout(Duration(seconds: 90)),
   );
 
-  test('only known levels fail, with an explicit error', () {
-    expect(errors.keys.toSet(), knownFailures);
-    for (final e in errors.values) {
-      expect(e.message, contains('no fallback'));
-    }
+  test('all 30 levels generate (no errors)', () {
+    expect(errors, isEmpty);
+    expect(generated, hasLength(30));
   });
 
   test('CI rules: first-pair rule, goal-minPairs, greedy wins for UX levels', () {
@@ -163,7 +157,9 @@ void main() {
       }
       sw.stop();
       // ignore: avoid_print
-      print('30 levels generated + verified in ${generateMs + sw.elapsedMilliseconds} ms');
+      print(
+        '${generated.length}/30 levels generated + verified in ${generateMs + sw.elapsedMilliseconds} ms',
+      );
       expect(generateMs + sw.elapsedMilliseconds, lessThan(30000));
     },
     timeout: const Timeout(Duration(seconds: 90)),

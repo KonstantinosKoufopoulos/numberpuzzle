@@ -250,12 +250,12 @@
     },
     {
      "type": "grass",
-     "count": 12
+     "count": 6
     }
    ],
    "layers": {
     "stars": 6,
-    "grass": 12
+    "grass": 6
    },
    "addNumbersLimit": 5
   },
