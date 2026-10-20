@@ -54,10 +54,7 @@ void main() {
     });
     test('win with non-empty board and multiple goals', () {
       final b = Board(4, const [Cell(value: 5, item: CellItem.star), Cell.n(5), Cell.n(1), Cell.n(2)]);
-      final g = GameState.start(b, const [
-        Goal(GoalType.star, 1),
-        Goal(GoalType.number, 2, value: 5),
-      ]).pair(0, 1);
+      final g = GameState.start(b, const [Goal(GoalType.star, 1), Goal(GoalType.number, 2, value: 5)]).pair(0, 1);
       expect(g.isWon, isTrue);
       expect(g.board.isCleared, isFalse);
     });
@@ -153,11 +150,7 @@ void main() {
       expect(g.isWon, isTrue);
     });
     test('removes slime, never stone or empty', () {
-      final b = Board(3, const [
-        Cell(obstacle: Obstacle.slime()),
-        Cell(obstacle: Obstacle.stone()),
-        Cell.empty(),
-      ]);
+      final b = Board(3, const [Cell(obstacle: Obstacle.slime()), Cell(obstacle: Obstacle.stone()), Cell.empty()]);
       const h = HammerBooster();
       expect(h.canApply(b, 0), isTrue);
       expect(h.canApply(b, 1), isFalse);
@@ -359,5 +352,16 @@ void main() {
       expect(r.solvable, isTrue);
       expect(r.clearedCells, {2, 5});
     });
+  });
+
+  test('useHint requires a game in progress', () {
+    final g = GameState.start(
+      Board.fromRows([
+        [1, 9],
+      ]),
+      const [Goal(GoalType.pairsTen, 1)],
+    ).pair(0, 1);
+    expect(g.status, GameStatus.won);
+    expect(g.useHint, throwsStateError);
   });
 }

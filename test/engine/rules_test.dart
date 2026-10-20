@@ -109,6 +109,7 @@ void main() {
       ]);
       final r = applyPair(b, 0, 1);
       expect(r.rowsRemoved, 1);
+      expect(r.keptRows, [1]);
       expect(r.board.rows, 1);
       expect(r.board.cells.map((c) => c.value), [2, 3, 4]);
       expect(r.isTenPair, isTrue);
@@ -137,11 +138,7 @@ void main() {
       expect(() => applyPair(b, 0, 1), throwsArgumentError);
     });
     test('collects stars and grass', () {
-      final b = Board(3, const [
-        Cell(value: 4, item: CellItem.star),
-        Cell(value: 6, grass: true),
-        Cell.n(1),
-      ]);
+      final b = Board(3, const [Cell(value: 4, item: CellItem.star), Cell(value: 6, grass: true), Cell.n(1)]);
       final r = applyPair(b, 0, 1);
       expect(r.starsCollected, 1);
       expect(r.grassCollected, 1);
@@ -155,24 +152,24 @@ void main() {
       expect(canPair(b, 0, 1), isFalse);
     });
     test('adjacent clear breaks hp1 ice, then selectable', () {
-      final b = Board(4, const [
-        Cell.n(3), Cell.n(7), Cell(value: 2, obstacle: Obstacle.ice(1)), Cell.n(8),
-      ]);
+      final b = Board(4, const [Cell.n(3), Cell.n(7), Cell(value: 2, obstacle: Obstacle.ice(1)), Cell.n(8)]);
       final r = applyPair(b, 0, 1);
       expect(r.iceBroken, 1);
       expect(r.board[2].obstacle, isNull);
       expect(canPair(r.board, 2, 3), isTrue);
     });
     test('hp2 ice needs two hits (1 hp per adjacent cleared cell)', () {
-      final b = Board(4, const [
-        Cell(value: 9, obstacle: Obstacle.ice(2)), Cell.n(1), Cell.empty(), Cell.n(1),
-      ]);
+      final b = Board(4, const [Cell(value: 9, obstacle: Obstacle.ice(2)), Cell.n(1), Cell.empty(), Cell.n(1)]);
       final r = applyPair(b, 1, 3);
       expect(r.board[0].obstacle, const Obstacle.ice(1));
       expect(r.iceBroken, 0);
       final c = Board(3, const [
-        Cell(value: 9, obstacle: Obstacle.ice(2)), Cell.n(4), Cell.n(2),
-        Cell.n(6), Cell.n(3), Cell.n(8),
+        Cell(value: 9, obstacle: Obstacle.ice(2)),
+        Cell.n(4),
+        Cell.n(2),
+        Cell.n(6),
+        Cell.n(3),
+        Cell.n(8),
       ]);
       final r2 = applyPair(c, 1, 3); // both cleared cells touch the ice
       expect(r2.iceBroken, 1);
@@ -186,14 +183,16 @@ void main() {
 
   group('slime', () {
     test('removed when all 8 neighbours empty', () {
-      final b = Board(3, const [
-        Cell.n(1), Cell(obstacle: Obstacle.slime()), Cell.n(9),
-      ]);
+      final b = Board(3, const [Cell.n(1), Cell(obstacle: Obstacle.slime()), Cell.n(9)]);
       // 1 and 9 separated by slime: not connected horizontally.
       expect(canPair(b, 0, 2), isFalse);
       final c = Board(3, const [
-        Cell.n(1), Cell(obstacle: Obstacle.slime()), Cell.empty(),
-        Cell.n(9), Cell.empty(), Cell.empty(),
+        Cell.n(1),
+        Cell(obstacle: Obstacle.slime()),
+        Cell.empty(),
+        Cell.n(9),
+        Cell.empty(),
+        Cell.empty(),
       ]);
       final r = applyPair(c, 0, 3);
       expect(r.slimeRemoved, 1);
@@ -201,8 +200,12 @@ void main() {
     });
     test('stays while a neighbour has a number', () {
       final c = Board(3, const [
-        Cell.n(1), Cell(obstacle: Obstacle.slime()), Cell.n(4),
-        Cell.n(9), Cell.empty(), Cell.empty(),
+        Cell.n(1),
+        Cell(obstacle: Obstacle.slime()),
+        Cell.n(4),
+        Cell.n(9),
+        Cell.empty(),
+        Cell.empty(),
       ]);
       final r = applyPair(c, 0, 3);
       expect(r.slimeRemoved, 0);
@@ -226,5 +229,23 @@ void main() {
       [1, 9, 2],
     ]);
     expect(allValidPairs(b), [(0, 1)]);
+  });
+
+  test('resolveAfterClear reports kept rows (slime removed in same step)', () {
+    final b = Board(3, const [
+      Cell.empty(),
+      Cell(obstacle: Obstacle.slime()),
+      Cell.empty(),
+      Cell.n(1),
+      Cell.n(2),
+      Cell.n(3),
+    ]);
+    // Row 0 keeps the slime: its neighbours (row 1) are not empty.
+    expect(resolveAfterClear(b, const []).keptRows, [0, 1]);
+    final cleared = b.replace({3: const Cell.empty(), 4: const Cell.empty(), 5: const Cell.empty()});
+    final r = resolveAfterClear(cleared, const [3, 4, 5]);
+    expect(r.slimeRemoved, 1);
+    expect(r.keptRows, isEmpty);
+    expect(r.board.length, 0);
   });
 }

@@ -112,7 +112,10 @@ class GameState {
   }
 
   /// Records a hint usage (board unchanged, counts as a booster).
-  GameState useHint() => _next(board, _progress.copy(), boosters: 1);
+  GameState useHint() {
+    _requirePlaying();
+    return _next(board, _progress.copy(), boosters: 1);
+  }
 
   /// Restores the previous snapshot. [boostersUsed] is kept.
   GameState undo() {

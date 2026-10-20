@@ -98,14 +98,7 @@ class HammerBooster implements Booster {
     }
     if (kind == ObstacleKind.slime) {
       final r = rules.resolveAfterClear(board.replace({cell: const Cell.empty()}), const []);
-      return (
-        board: r.board,
-        value: null,
-        stars: 0,
-        grass: 0,
-        iceBroken: 0,
-        slimeRemoved: 1 + r.slimeRemoved,
-      );
+      return (board: r.board, value: null, stars: 0, grass: 0, iceBroken: 0, slimeRemoved: 1 + r.slimeRemoved);
     }
     final r = rules.resolveAfterClear(board.replace({cell: const Cell.empty()}), [cell]);
     return (
@@ -138,10 +131,7 @@ class SwapBooster implements Booster {
   Board apply(Board board, Object? target) {
     if (!canApply(board, target)) throw ArgumentError('Swap cannot apply to $target');
     final (a, b) = target as (int, int);
-    return board.replace({
-      a: board[a].copyWith(value: board[b].value),
-      b: board[b].copyWith(value: board[a].value),
-    });
+    return board.replace({a: board[a].copyWith(value: board[b].value), b: board[b].copyWith(value: board[a].value)});
   }
 }
 
@@ -154,12 +144,4 @@ class HintBooster implements Booster {
   bool canApply(Board board, Object? target) => true;
   @override
   Board apply(Board board, Object? target) => board;
-}
-
-/// Simple board history. Full-state undo lives in `GameState` (game.dart).
-class UndoStack {
-  final List<Board> _history = [];
-  void push(Board b) => _history.add(b);
-  bool get canUndo => _history.isNotEmpty;
-  Board pop() => _history.removeLast();
 }

@@ -47,8 +47,7 @@ bool connectedInReadingOrder(Board board, int a, int b) {
   return true;
 }
 
-bool areConnected(Board board, int a, int b) =>
-    connectedInLine(board, a, b) || connectedInReadingOrder(board, a, b);
+bool areConnected(Board board, int a, int b) => connectedInLine(board, a, b) || connectedInReadingOrder(board, a, b);
 
 /// Full validity check for a player pair.
 bool canPair(Board board, int a, int b) {
@@ -62,10 +61,10 @@ bool canPair(Board board, int a, int b) {
 
 /// All currently valid pairs (a < b). O(n²) – fine for ≤ 9×20 boards.
 List<(int, int)> allValidPairs(Board board) => [
-      for (var a = 0; a < board.length; a++)
-        for (var b = a + 1; b < board.length; b++)
-          if (canPair(board, a, b)) (a, b),
-    ];
+  for (var a = 0; a < board.length; a++)
+    for (var b = a + 1; b < board.length; b++)
+      if (canPair(board, a, b)) (a, b),
+];
 
 /// What happened when a pair was cleared; feeds [GoalProgress].
 class PairResult {
@@ -78,6 +77,7 @@ class PairResult {
     this.iceBroken = 0,
     this.slimeRemoved = 0,
     this.rowsRemoved = 0,
+    this.keptRows = const [],
   });
 
   final Board board;
@@ -88,6 +88,10 @@ class PairResult {
   final int iceBroken;
   final int slimeRemoved;
   final int rowsRemoved;
+
+  /// Row indices of the input board that survived, in order (see
+  /// [Resolution]). Used by the solver to track original cell ids.
+  final List<int> keptRows;
 
   bool get isSamePair => valueA == valueB;
   bool get isTenPair => valueA + valueB == 10;
@@ -116,11 +120,16 @@ PairResult applyPair(Board board, int a, int b) {
     iceBroken: r.iceBroken,
     slimeRemoved: r.slimeRemoved,
     rowsRemoved: r.rowsRemoved,
+    keptRows: r.keptRows,
   );
 }
 
 /// Result of [resolveAfterClear].
-typedef Resolution = ({Board board, int iceBroken, int slimeRemoved, int rowsRemoved});
+///
+/// [keptRows] lists the row indices of the input board that survived, in
+/// order; it is the single source of truth for row collapse (the solver maps
+/// cell ids through it instead of re-deriving the rule).
+typedef Resolution = ({Board board, int iceBroken, int slimeRemoved, int rowsRemoved, List<int> keptRows});
 
 /// Applies side effects of clearing [cleared] cells: damages adjacent ice
 /// (1 hp per cleared neighbour), removes slime fully surrounded by empties,
@@ -146,33 +155,38 @@ Resolution resolveAfterClear(Board board, List<int> cleared) {
   var slime = 0;
   final slimeChanges = <int, Cell>{};
   for (var i = 0; i < b.length; i++) {
-    if (b[i].obstacle?.kind == ObstacleKind.slime &&
-        b.neighbours(i).every((n) => b[n].isEmpty)) {
+    if (b[i].obstacle?.kind == ObstacleKind.slime && b.neighbours(i).every((n) => b[n].isEmpty)) {
       slimeChanges[i] = const Cell.empty();
       slime++;
     }
   }
   if (slimeChanges.isNotEmpty) b = b.replace(slimeChanges);
-  final before = b.rows;
-  b = removeEmptyRows(b);
-  return (board: b, iceBroken: iceBroken, slimeRemoved: slime, rowsRemoved: before - b.rows);
+  final kept = nonEmptyRows(b);
+  final rowsRemoved = b.rows - kept.length;
+  if (rowsRemoved > 0) b = _keepRows(b, kept);
+  return (board: b, iceBroken: iceBroken, slimeRemoved: slime, rowsRemoved: rowsRemoved, keptRows: kept);
 }
 
+/// Indices of rows that contain at least one non-empty cell.
+List<int> nonEmptyRows(Board board) => [
+  for (var r = 0; r < board.rows; r++)
+    if (!board.cells.sublist(r * board.columns, (r + 1) * board.columns).every((c) => c.isEmpty)) r,
+];
+
+Board _keepRows(Board board, List<int> rows) =>
+    Board(board.columns, [for (final r in rows) ...board.cells.sublist(r * board.columns, (r + 1) * board.columns)]);
+
 /// Removes every row whose cells are all empty (stones/slime keep a row).
-Board removeEmptyRows(Board board) {
-  final keep = <Cell>[];
-  for (var r = 0; r < board.rows; r++) {
-    final row = board.cells.sublist(r * board.columns, (r + 1) * board.columns);
-    if (!row.every((c) => c.isEmpty)) keep.addAll(row);
-  }
-  return Board(board.columns, keep);
-}
+Board removeEmptyRows(Board board) => _keepRows(board, nonEmptyRows(board));
 
 /// "Add numbers": appends a copy of every remaining number, in reading order,
 /// right after the last non-empty cell; pads the final row with empties.
 /// Copies are plain numbers (no items, grass or obstacles).
 Board addNumbers(Board board) {
-  final values = [for (final c in board.cells) if (c.value != null) c.value!];
+  final values = [
+    for (final c in board.cells)
+      if (c.value != null) c.value!,
+  ];
   var last = board.length - 1;
   while (last >= 0 && board[last].isEmpty) {
     last--;

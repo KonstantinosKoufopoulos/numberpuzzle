@@ -106,29 +106,13 @@ class _Node {
   final int adds;
 }
 
-/// Applies a pair, returning the new board, ids and the pair result.
+/// Applies a pair, returning the pair result and the surviving cell ids.
+/// Row collapse comes from [PairResult.keptRows] (shared with
+/// `resolveAfterClear`), so the rule lives in one place.
 (PairResult, List<int>) _applyWithIds(Board board, List<int> ids, int a, int b) {
   final r = applyPair(board, a, b);
-  // Recompute which rows survived (mirrors resolveAfterClear).
-  final p = board.replace({a: const Cell.empty(), b: const Cell.empty()});
-  final emptyAfter = List<bool>.generate(p.length, (i) => p[i].isEmpty);
-  for (var i = 0; i < p.length; i++) {
-    if (p[i].obstacle?.kind == ObstacleKind.slime && p.neighbours(i).every((x) => p[x].isEmpty)) {
-      emptyAfter[i] = true;
-    }
-  }
-  final next = <int>[];
-  for (var row = 0; row < p.rows; row++) {
-    final s = row * p.columns;
-    var allEmpty = true;
-    for (var k = 0; k < p.columns; k++) {
-      if (!emptyAfter[s + k]) {
-        allEmpty = false;
-        break;
-      }
-    }
-    if (!allEmpty) next.addAll(ids.sublist(s, s + p.columns));
-  }
+  final c = board.columns;
+  final next = <int>[for (final row in r.keptRows) ...ids.sublist(row * c, (row + 1) * c)];
   assert(next.length == r.board.length);
   return (r, next);
 }
@@ -408,12 +392,7 @@ int _lowerBoundPairs(GoalProgress p) {
 /// target digit, ice, slime), then the earliest pair. With no pair it uses
 /// "Add numbers" (up to [addNumbersLimit]). Returns the pair count, or null
 /// if the greedy player gets stuck or exceeds [maxPairs].
-int? greedyPairsToWin(
-  Board board,
-  List<Goal> goals, {
-  int addNumbersLimit = solverAddLimit,
-  int maxPairs = 500,
-}) {
+int? greedyPairsToWin(Board board, List<Goal> goals, {int addNumbersLimit = solverAddLimit, int maxPairs = 500}) {
   var b = board;
   final p = GoalProgress(goals);
   var adds = 0, pairs = 0;
@@ -446,10 +425,7 @@ int? greedyPairsToWin(
     int dist(int x) {
       var best = 1 << 20;
       for (final t in targets) {
-        final d = [
-          (b.rowOf(x) - b.rowOf(t)).abs(),
-          (b.colOf(x) - b.colOf(t)).abs(),
-        ].reduce((u, v) => u > v ? u : v);
+        final d = [(b.rowOf(x) - b.rowOf(t)).abs(), (b.colOf(x) - b.colOf(t)).abs()].reduce((u, v) => u > v ? u : v);
         if (d < best) best = d;
       }
       return best;
