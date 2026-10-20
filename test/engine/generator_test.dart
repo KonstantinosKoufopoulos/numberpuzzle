@@ -28,6 +28,35 @@ void main() {
     }
   });
 
+  test(
+    'late placement: stars/grass only in last 50% of line, never first 3 pairs',
+    () {
+      expect(SeededBoardGenerator.latePairIndex(4), 3);
+      expect(SeededBoardGenerator.latePairIndex(20), 10);
+      for (final l in pack.levels.where((l) => l.layers.stars + l.layers.grass > 0)) {
+        final g = gen.generateDetailed(l);
+        expect(g.latePlacement, isTrue, reason: 'level ${l.id}');
+        final line = g.placementLine;
+        final first = SeededBoardGenerator.latePairIndex(line.moves.whereType<PairMove>().length);
+        final at = {
+          for (var k = 0; k < line.clearOrder.length; k++) line.clearOrder[k]: line.clearPairIndex[k],
+        };
+        for (var i = 0; i < g.board.length; i++) {
+          final c = g.board[i];
+          if (c.item == CellItem.star || c.grass) {
+            expect(at[i], isNotNull, reason: 'level ${l.id} cell $i not cleared by line');
+            expect(at[i]!, greaterThanOrEqualTo(first), reason: 'level ${l.id} cell $i');
+            expect(at[i]!, greaterThanOrEqualTo(3));
+          }
+        }
+        // Re-verified: solvable without boosters with <= 3 Add numbers.
+        expect(g.solution.solvable, isTrue);
+        expect(g.solution.moves.whereType<AddNumbersMove>().length, lessThanOrEqualTo(solverAddLimit));
+      }
+    },
+    timeout: const Timeout(Duration(seconds: 90)),
+  );
+
   test('minPairs rejects too-short boards and reseeds', () {
     final l = pack.levels[6]; // level 7: 3 stars, trivially short by default
     const strict = SeededBoardGenerator(minPairs: 3);

@@ -27,6 +27,7 @@ class SolveResult {
     this.clearedCells = const {},
     this.nodes = 0,
     this.clearOrder = const [],
+    this.clearPairIndex = const [],
   });
   final bool solvable;
 
@@ -40,6 +41,10 @@ class SolveResult {
 
   /// Same cells as [clearedCells], in the order they are cleared.
   final List<int> clearOrder;
+
+  /// For each entry of [clearOrder], the 0-based index of the pair (in the
+  /// line, Add numbers not counted) that cleared it.
+  final List<int> clearPairIndex;
 
   /// Search nodes expanded.
   final int nodes;
@@ -156,6 +161,8 @@ class DfsSolver implements Solver {
     final seen = <String>{};
     final path = <Move>[];
     final cleared = <int>[];
+    final clearedAt = <int>[];
+    var pairDepth = 0;
     var nodes = 0;
 
     bool dfs(_Node s) {
@@ -171,12 +178,18 @@ class DfsSolver implements Solver {
         path.add(PairMove(p.$1, p.$2));
         final mark = cleared.length;
         for (final id in [s.ids[p.$1], s.ids[p.$2]]) {
-          if (id >= 0) cleared.add(id);
+          if (id >= 0) {
+            cleared.add(id);
+            clearedAt.add(pairDepth);
+          }
         }
         if (prog.isComplete) return true;
+        pairDepth++;
         if (dfs(_Node(r.board, ids, prog, s.adds))) return true;
+        pairDepth--;
         path.removeLast();
         cleared.length = mark;
+        clearedAt.length = mark;
         if (nodes > nodeBudget) return false;
       }
       if (s.adds < addNumbersLimit) {
@@ -197,6 +210,7 @@ class DfsSolver implements Solver {
       clearedCells: ok ? Set.unmodifiable(cleared.toSet()) : const {},
       nodes: nodes,
       clearOrder: ok ? List.unmodifiable(cleared) : const [],
+      clearPairIndex: ok ? List.unmodifiable(clearedAt) : const [],
     );
   }
 
@@ -314,16 +328,16 @@ enum ShortWinCheck { winnableWithin, notWinnableWithin, timedOut }
 /// never on device): a level is accepted only if this returns
 /// [ShortWinCheck.notWinnableWithin] for `minPairs - 1`. Memo on board key +
 /// progress + adds, storing the largest remaining depth already explored.
-/// Returns [ShortWinCheck.timedOut] when [timeout] elapses (caller rejects
-/// and reseeds).
+/// Returns [ShortWinCheck.timedOut] when [nodeBudget] nodes are exhausted
+/// (deterministic, machine-independent; caller rejects and reseeds).
 ShortWinCheck shortWinCheck(
   Board board,
   List<Goal> goals,
   int maxPairs, {
   int addNumbersLimit = solverAddLimit,
-  Duration timeout = const Duration(seconds: 2),
+  int nodeBudget = 20000,
+  void Function(int nodes)? onNodes,
 }) {
-  final sw = Stopwatch()..start();
   final memo = <String, int>{};
   var nodes = 0;
   var timedOut = false;
@@ -331,7 +345,7 @@ ShortWinCheck shortWinCheck(
   bool dfs(_Node s, int depthLeft) {
     if (s.progress.isComplete) return true;
     if (depthLeft <= 0 && s.adds >= addNumbersLimit) return false;
-    if ((++nodes & 255) == 0 && sw.elapsed > timeout) {
+    if (++nodes > nodeBudget) {
       timedOut = true;
       return false;
     }
@@ -341,6 +355,7 @@ ShortWinCheck shortWinCheck(
     if (prev != null && prev >= depthLeft) return false;
     memo[key] = depthLeft;
     if (DfsSolver._dead(s, addNumbersLimit)) return false;
+    if (_lowerBoundPairs(s.progress) > depthLeft) return false;
     if (depthLeft > 0) {
       for (final (a, b) in fastValidPairs(s.board)) {
         final (r, ids) = _applyWithIds(s.board, s.ids, a, b);
@@ -361,6 +376,102 @@ ShortWinCheck shortWinCheck(
 
   final root = _Node(board, List<int>.generate(board.length, (i) => i), GoalProgress(goals), 0);
   final found = dfs(root, maxPairs);
+  onNodes?.call(nodes);
   if (found) return ShortWinCheck.winnableWithin;
   return timedOut ? ShortWinCheck.timedOut : ShortWinCheck.notWinnableWithin;
+}
+
+/// Admissible lower bound on pairs still needed: a pair clears 2 cells, so
+/// it advances a number/star/grass goal by at most 2 and a pair goal by 1.
+int _lowerBoundPairs(GoalProgress p) {
+  var lb = 0;
+  for (var i = 0; i < p.goals.length; i++) {
+    final need = p.remaining(i);
+    if (need <= 0) continue;
+    final b = switch (p.goals[i].type) {
+      GoalType.number || GoalType.star || GoalType.grass => (need + 1) ~/ 2,
+      GoalType.pairsSame || GoalType.pairsTen => need,
+      GoalType.breakIce || GoalType.slime => 1,
+    };
+    if (b > lb) lb = b;
+  }
+  return lb;
+}
+
+/// Cheap difficulty metric: pairs a greedy goal-chaser needs to win.
+///
+/// Each step plays the valid pair with the largest immediate goal progress;
+/// ties (and steps with no progress available) go to the pair closest
+/// (Chebyshev distance) to the nearest remaining goal cell (star, grass,
+/// target digit, ice, slime), then the earliest pair. With no pair it uses
+/// "Add numbers" (up to [addNumbersLimit]). Returns the pair count, or null
+/// if the greedy player gets stuck or exceeds [maxPairs].
+int? greedyPairsToWin(
+  Board board,
+  List<Goal> goals, {
+  int addNumbersLimit = solverAddLimit,
+  int maxPairs = 500,
+}) {
+  var b = board;
+  final p = GoalProgress(goals);
+  var adds = 0, pairs = 0;
+  while (!p.isComplete) {
+    final cand = fastValidPairs(b);
+    if (cand.isEmpty) {
+      if (adds >= addNumbersLimit || !b.cells.any((c) => c.value != null)) return null;
+      b = addNumbers(b);
+      adds++;
+      continue;
+    }
+    if (pairs >= maxPairs) return null;
+    final targets = <int>[];
+    for (var i = 0; i < p.goals.length; i++) {
+      if (p.remaining(i) <= 0) continue;
+      final g = p.goals[i];
+      for (var k = 0; k < b.length; k++) {
+        final c = b[k];
+        final hit = switch (g.type) {
+          GoalType.star => c.item == CellItem.star && c.value != null,
+          GoalType.grass => c.grass && c.value != null,
+          GoalType.number => c.value == g.value,
+          GoalType.breakIce => c.obstacle?.kind == ObstacleKind.ice,
+          GoalType.slime => c.obstacle?.kind == ObstacleKind.slime,
+          GoalType.pairsSame || GoalType.pairsTen => false,
+        };
+        if (hit) targets.add(k);
+      }
+    }
+    int dist(int x) {
+      var best = 1 << 20;
+      for (final t in targets) {
+        final d = [
+          (b.rowOf(x) - b.rowOf(t)).abs(),
+          (b.colOf(x) - b.colOf(t)).abs(),
+        ].reduce((u, v) => u > v ? u : v);
+        if (d < best) best = d;
+      }
+      return best;
+    }
+
+    PairResult? bestR;
+    var bestScore = -1 << 40;
+    for (final (x, y) in cand) {
+      final r = applyPair(b, x, y);
+      final q = p.copy()..onPair(r);
+      var gain = 0;
+      for (var i = 0; i < q.done.length; i++) {
+        gain += q.done[i] - p.done[i];
+      }
+      final dx = dist(x), dy = dist(y);
+      final score = gain * 100000 - (dx < dy ? dx : dy);
+      if (score > bestScore) {
+        bestScore = score;
+        bestR = r;
+      }
+    }
+    p.onPair(bestR!);
+    b = bestR.board;
+    pairs++;
+  }
+  return pairs;
 }

@@ -15,6 +15,7 @@ import 'board.dart';
 import 'cell.dart';
 import 'goals.dart';
 import 'level.dart';
+import 'moves.dart';
 import 'rules.dart';
 import 'solver.dart';
 
@@ -59,12 +60,22 @@ class GeneratedLevel {
     required this.seedUsed,
     required this.attempts,
     required this.solution,
+    this.latePlacement = true,
+    this.placementLine = const SolveResult(solvable: false),
   });
+
+  /// Phase-1 line (board without stars/grass) whose cleared cells received
+  /// the stars/grass.
+  final SolveResult placementLine;
   final Board board;
 
   /// The seed that produced [board] (`level.seed + attempts - 1`).
   final int seedUsed;
   final int attempts;
+
+  /// False if late star/grass placement failed for every seed and the
+  /// generator fell back to placing them anywhere on the solver line.
+  final bool latePlacement;
 
   /// Booster-free winning line verified on [board].
   final SolveResult solution;
@@ -75,35 +86,66 @@ class SeededBoardGenerator implements BoardGenerator {
     this.maxReseeds = 50,
     this.solver = const DfsSolver(nodeBudget: 20000),
     this.minPairs = 0,
-    this.minPairsTimeout = const Duration(seconds: 2),
+    this.minPairsNodeBudget = 20000,
+    this.levelNodeBudget = 3000000,
   });
   final int maxReseeds;
   final DfsSolver solver;
 
   /// Difficulty floor: reject boards whose goals can be met with fewer than
   /// [minPairs] pairs. 0 disables the check. Checked with the depth-limited
-  /// [shortWinCheck] (memo, no exhaustive proof); a timeout after
-  /// [minPairsTimeout] rejects the board and reseeds. Generator/CI only.
+  /// [shortWinCheck] (memo, no exhaustive proof); exhausting
+  /// [minPairsNodeBudget] rejects the board and reseeds. Generator/CI only.
   final int minPairs;
-  final Duration minPairsTimeout;
+  final int minPairsNodeBudget;
+
+  /// Deterministic per-level cap on solver + check nodes summed over all
+  /// attempts (both placement modes); exceeding it throws [StateError].
+  final int levelNodeBudget;
 
   @override
   Board generate(Level level) => generateDetailed(level).board;
 
   /// Generates and verifies; throws [StateError] after [maxReseeds] failures.
   GeneratedLevel generateDetailed(Level level) {
-    for (var attempt = 0; attempt < maxReseeds; attempt++) {
-      final seed = level.seed + attempt;
-      final r = tryGenerate(level, seed);
-      if (r != null) {
-        return GeneratedLevel(board: r.$1, seedUsed: seed, attempts: attempt + 1, solution: r.$2);
+    final budget = _Budget();
+    for (final late in const [true, false]) {
+      for (var attempt = 0; attempt < maxReseeds; attempt++) {
+        if (budget.used > levelNodeBudget) {
+          throw StateError('Level ${level.id}: node budget $levelNodeBudget exhausted');
+        }
+        final seed = level.seed + attempt;
+        final r = _tryGenerate(level, seed, late, budget);
+        if (r != null) {
+          return GeneratedLevel(
+            board: r.$1,
+            seedUsed: seed,
+            attempts: attempt + 1,
+            solution: r.$2,
+            placementLine: r.$3,
+            latePlacement: late,
+          );
+        }
       }
     }
     throw StateError('Level ${level.id}: no solvable board after $maxReseeds seeds');
   }
 
   /// One attempt with [seed]; null if the board is not provably solvable.
-  (Board, SolveResult)? tryGenerate(Level level, int seed) {
+  /// First pair index (0-based) counted as "late" in a line of [pairs] pairs:
+  /// the last 50% of the line and never one of the first 3 pairs.
+  static int latePairIndex(int pairs) {
+    final half = pairs ~/ 2;
+    return half > 3 ? half : 3;
+  }
+
+  /// With [late] (default) stars/grass go only on cells cleared in the late
+  /// part of the phase-1 line (see [latePairIndex]); otherwise anywhere on it.
+  (Board, SolveResult, SolveResult)? tryGenerate(Level level, int seed, {bool late = true}) =>
+      _tryGenerate(level, seed, late, _Budget());
+
+  (Board, SolveResult, SolveResult)? _tryGenerate(Level level, int seed, bool late, _Budget budget) {
+    void count(int n) => budget.used += n;
     final rng = SeededRng(seed);
     final cols = level.columns, rows = level.rows, n = cols * rows;
     final l = level.layers;
@@ -183,38 +225,48 @@ class SeededBoardGenerator implements BoardGenerator {
       if (kind[i] == ObstacleKind.ice && !_iceHasFreePairNeighbour(withIce, i)) return null;
     }
 
-    // Phase 1: solve with stars/grass replaced by "clear S+G original cells"
-    // (a star marker on every eligible cell).
+    // Phase 1: solve the board without stars/grass, replacing those goals by
+    // "clear N original cells" (a star marker on every plain cell), with N
+    // large enough that the late part of the line has room for them.
     final sg = l.stars + l.grass;
-    final phaseGoals = <Goal>[
-      for (final g in level.goals)
-        if (g.type != GoalType.star && g.type != GoalType.grass) g,
-      // With a minPairs floor, clear extra cells so stars/grass can sit on
-      // the late part of the line.
-      if (sg > 0) Goal(GoalType.star, sg > 2 * minPairs ? sg : 2 * minPairs),
-    ];
-    final marked = [
-      for (var i = 0; i < n; i++) kind[i] == null ? cells[i].copyWith(item: CellItem.star) : cells[i],
-    ];
-    final p1 = solver.solve(sg > 0 ? Board(cols, marked) : withIce, phaseGoals);
-    if (!p1.solvable) return null;
-
-    // Place stars and grass on cleared plain cells.
-    var eligible = [
-      for (final i in p1.clearOrder)
+    final plain = [
+      for (var i = 0; i < n; i++)
         if (kind[i] == null) i,
-    ];
-    if (minPairs > 1) {
-      // Latest-cleared cells first (shuffled within the late half).
-      eligible = eligible.reversed.toList();
-      final late = eligible.sublist(0, eligible.length < 2 * sg ? eligible.length : 2 * sg);
-      rng.shuffle(late);
-      eligible = [...late, ...eligible.sublist(late.length)];
-    } else {
-      eligible.sort();
-      rng.shuffle(eligible);
+    ].length;
+    List<int>? eligible;
+    SolveResult? p1;
+    final targets = sg == 0
+        ? const [0]
+        : late
+        ? {
+            for (final t in [2 * sg + 6, 2 * sg + 2, sg + 6]) t < plain ? t : plain,
+          }.toList()
+        : [sg];
+    for (final target in targets) {
+      final phaseGoals = <Goal>[
+        for (final g in level.goals)
+          if (g.type != GoalType.star && g.type != GoalType.grass) g,
+        if (target > 0) Goal(GoalType.star, target),
+      ];
+      final marked = [
+        for (var i = 0; i < n; i++) kind[i] == null ? cells[i].copyWith(item: CellItem.star) : cells[i],
+      ];
+      final r = solver.solve(sg > 0 ? Board(cols, marked) : withIce, phaseGoals);
+      count(r.nodes);
+      if (!r.solvable) continue;
+      final pairs = r.moves.whereType<PairMove>().length;
+      final firstLate = late ? latePairIndex(pairs) : 0;
+      final e = [
+        for (var k = 0; k < r.clearOrder.length; k++)
+          if (kind[r.clearOrder[k]] == null && r.clearPairIndex[k] >= firstLate) r.clearOrder[k],
+      ];
+      if (e.length < sg) continue;
+      p1 = r;
+      eligible = e;
+      break;
     }
-    if (eligible.length < sg) return null;
+    if (p1 == null || eligible == null) return null;
+    rng.shuffle(eligible);
     final finalCells = List<Cell>.of(cells);
     for (var k = 0; k < l.stars; k++) {
       finalCells[eligible[k]] = finalCells[eligible[k]].copyWith(item: CellItem.star);
@@ -226,13 +278,14 @@ class SeededBoardGenerator implements BoardGenerator {
 
     // Verify the real board with the solver (independent proof).
     final p2 = sg > 0 ? solver.solve(board, level.goals) : p1;
+    if (sg > 0) count(p2.nodes);
     if (!p2.solvable) return null;
     if (minPairs > 1 &&
-        shortWinCheck(board, level.goals, minPairs - 1, timeout: minPairsTimeout) !=
+        shortWinCheck(board, level.goals, minPairs - 1, nodeBudget: minPairsNodeBudget, onNodes: count) !=
             ShortWinCheck.notWinnableWithin) {
       return null;
     }
-    return (board, p2);
+    return (board, p2, p1);
   }
 
   static bool _iceHasFreePairNeighbour(Board b, int ice) {
@@ -263,4 +316,8 @@ bool verifyLine(Board board, List<Goal> goals, List<Object> moves, {int addNumbe
     }
   }
   return p.isComplete;
+}
+
+class _Budget {
+  int used = 0;
 }

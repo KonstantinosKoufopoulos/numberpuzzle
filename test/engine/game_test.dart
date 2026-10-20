@@ -329,9 +329,26 @@ void main() {
       expect(shortWinCheck(b, goals, 3, addNumbersLimit: 0), ShortWinCheck.winnableWithin);
       final big = Board(9, [for (var i = 0; i < 81; i++) Cell.n(1 + (i * 7) % 9)]);
       expect(
-        shortWinCheck(big, const [Goal(GoalType.number, 60, value: 1)], 40, timeout: Duration.zero),
+        shortWinCheck(big, const [Goal(GoalType.number, 60, value: 1)], 40, nodeBudget: 0),
         ShortWinCheck.timedOut,
       );
+    });
+    test('greedyPairsToWin', () {
+      final b = Board.fromRows([
+        [9, 6, 3, 7, 4, 1],
+      ]);
+      expect(greedyPairsToWin(b, const [Goal(GoalType.number, 1, value: 9)], addNumbersLimit: 0), 3);
+      expect(
+        greedyPairsToWin(
+          Board.fromRows([
+            [1, 2],
+          ]),
+          const [Goal(GoalType.star, 1)],
+        ),
+        isNull,
+      );
+      final s2 = Board(4, const [Cell.n(1), Cell.n(9), Cell.n(2), Cell(value: 8, item: CellItem.star)]);
+      expect(greedyPairsToWin(s2, const [Goal(GoalType.star, 1)]), 1);
     });
     test('clearedCells refer to original indices', () {
       final b = Board.fromRows([

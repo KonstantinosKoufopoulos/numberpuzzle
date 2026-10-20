@@ -91,5 +91,15 @@ unknown `gift`/`introduces`/goal type rejected.
 * `minPairs` (generator option, default 0 = off): boards whose goals can be
   met in fewer pairs are rejected. Checked with `shortWinCheck`, a
   depth-limited DFS with a memo on board key (not an exhaustive proof) and a
-  per-board timeout (`minPairsTimeout`, default 2 s); a timeout rejects the
-  board and reseeds. Generator/CI only, never on device.
+  fixed node budget (`minPairsNodeBudget`, default 20000; deterministic and
+  machine-independent); exhausting it rejects the board and reseeds. Generator/CI only, never on device.
+* Star/grass placement is always "late": the board is first solved without
+  stars/grass (goal: clear extra cells), then stars/grass go only on cells
+  cleared at pair index >= max(3, pairs/2) of that line, and the final board
+  is re-verified (no boosters, <= 3 Add numbers). If no seed works, the
+  generator falls back to placement anywhere on the line for that level
+  (`GeneratedLevel.latePlacement == false`; currently no level needs it).
+* Per-level deterministic cap: `maxReseeds` (50 per placement mode) and
+  `levelNodeBudget` (3,000,000 solver/check nodes summed over attempts).
+* `greedyPairsToWin` (solver.dart) is a cheap difficulty metric; see
+  `docs/level-metrics.md` (`dart run tool/level_metrics.dart`).
