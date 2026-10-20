@@ -95,10 +95,23 @@ unknown `gift`/`introduces`/goal type rejected.
   machine-independent); exhausting it rejects the board and reseeds. Generator/CI only, never on device.
 * Star/grass placement is always "late": the board is first solved without
   stars/grass (goal: clear extra cells), then stars/grass go only on cells
-  cleared at pair index >= max(3, pairs/2) of that line, and the final board
-  is re-verified (no boosters, <= 3 Add numbers). If no seed works, the
-  generator falls back to placement anywhere on the line for that level
-  (`GeneratedLevel.latePlacement == false`; currently no level needs it).
+  cleared at pair index >= max(3, pairs/2) of that line, spread apart
+  (max-min Chebyshev distance, stars first), and the final board is
+  re-verified (no boosters, <= 3 Add numbers). There is NO fallback: if no
+  seed works, generation throws `StateError` naming the level.
+* First-pair rule: no star/grass cell is part of any valid pair on the
+  starting board (depth 1, no Add numbers); asserted in CI.
+* Goal-minPairs (star/grass goals only): the minimum number of pairs needed
+  to collect ALL star+grass goals, checked without Add numbers via
+  `shortWinCheck` (fixed 10,000 nodes per depth), must be >= target:
+  L7 5, L8 5, L15 4, L25 4, L22 7, else 4. Not met within budget -> best
+  board with goal-minPairs >= 3 is kept and flagged `BEST-EFFORT` in
+  `docs/level-metrics.md` (currently: **level 22**, 6 of 7).
+* `requireGreedyWinLevels` (default {1-6, 15, 25}, revertible flag): the
+  greedy player must win without boosters within the level's 5 Add numbers.
+* Known failure: **level 14** (6 stars + 12 grass on 7x6) cannot get 18
+  late, non-first-pair cells within budget -> explicit error; needs a
+  design change (fewer stars/grass or a bigger board).
 * Per-level deterministic cap: `maxReseeds` (50 per placement mode) and
   `levelNodeBudget` (3,000,000 solver/check nodes summed over attempts).
 * `greedyPairsToWin` (solver.dart) is a cheap difficulty metric; see

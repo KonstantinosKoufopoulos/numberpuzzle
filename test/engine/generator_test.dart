@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:numberpuzzle/engine/board.dart';
 import 'package:numberpuzzle/engine/cell.dart';
 import 'package:numberpuzzle/engine/game.dart';
+import 'package:numberpuzzle/engine/goals.dart';
 import 'package:numberpuzzle/engine/generator.dart';
 import 'package:numberpuzzle/engine/level.dart';
 import 'package:numberpuzzle/engine/moves.dart';
@@ -15,6 +16,25 @@ void main() {
     jsonDecode(File('assets/levels/levels.json').readAsStringSync()) as Map<String, dynamic>,
   );
   const gen = SeededBoardGenerator();
+  // Generated once (timed) and shared by the tests below.
+  final generated = <int, GeneratedLevel>{};
+  // Levels that cannot satisfy the rules within budget (explicit error, no
+  // fallback). See docs/generated-seeds.md. L14: 6 stars + 12 grass need 18
+  // late, non-first-pair cells on a 7x6 board.
+  const knownFailures = {14};
+  final errors = <int, StateError>{};
+  var generateMs = 0;
+  setUpAll(() {
+    final sw = Stopwatch()..start();
+    for (final l in pack.levels) {
+      try {
+        generated[l.id] = gen.generateDetailed(l);
+      } on StateError catch (e) {
+        errors[l.id] = e;
+      }
+    }
+    generateMs = sw.elapsedMilliseconds;
+  });
 
   test('PRNG is deterministic', () {
     final a = SeededRng(42), b = SeededRng(42);
@@ -24,7 +44,7 @@ void main() {
   test('generator is deterministic', () {
     for (final id in [1, 9, 24, 30]) {
       final l = pack.levels[id - 1];
-      expect(gen.generate(l).cells, gen.generate(l).cells, reason: 'level $id');
+      expect(gen.generate(l).cells, generated[id]!.board.cells, reason: 'level $id');
     }
   });
 
@@ -33,8 +53,10 @@ void main() {
     () {
       expect(SeededBoardGenerator.latePairIndex(4), 3);
       expect(SeededBoardGenerator.latePairIndex(20), 10);
-      for (final l in pack.levels.where((l) => l.layers.stars + l.layers.grass > 0)) {
-        final g = gen.generateDetailed(l);
+      for (final l in pack.levels.where(
+        (l) => l.layers.stars + l.layers.grass > 0 && generated.containsKey(l.id),
+      )) {
+        final g = generated[l.id]!;
         expect(g.latePlacement, isTrue, reason: 'level ${l.id}');
         final line = g.placementLine;
         final first = SeededBoardGenerator.latePairIndex(line.moves.whereType<PairMove>().length);
@@ -57,6 +79,53 @@ void main() {
     timeout: const Timeout(Duration(seconds: 90)),
   );
 
+  test('only known levels fail, with an explicit error', () {
+    expect(errors.keys.toSet(), knownFailures);
+    for (final e in errors.values) {
+      expect(e.message, contains('no fallback'));
+    }
+  });
+
+  test('CI rules: first-pair rule, goal-minPairs, greedy wins for UX levels', () {
+    expect(SeededBoardGenerator.kGoalMinPairsTargets, {7: 5, 8: 5, 15: 4, 25: 4, 22: 7});
+    for (final l in pack.levels.where((l) => generated.containsKey(l.id))) {
+      final g = generated[l.id]!;
+      expect(g.latePlacement, isTrue, reason: 'level ${l.id}');
+      // No star/grass in any valid first pair.
+      expect(SeededBoardGenerator.noFirstPairCollect(g.board), isTrue, reason: 'level ${l.id}');
+      for (final (a, b) in fastValidPairs(g.board)) {
+        expect(g.board[a].item == null && !g.board[a].grass, isTrue);
+        expect(g.board[b].item == null && !g.board[b].grass, isTrue);
+      }
+      final sgGoals = [
+        for (final x in l.goals)
+          if (x.type == GoalType.star || x.type == GoalType.grass) x,
+      ];
+      if (sgGoals.isEmpty) {
+        expect(g.goalMinPairsMet, isNull);
+      } else {
+        final target =
+            SeededBoardGenerator.kGoalMinPairsTargets[l.id] ?? SeededBoardGenerator.kDefaultGoalMinPairs;
+        expect(g.goalMinPairsTarget, target);
+        expect(g.goalMinPairs, greaterThanOrEqualTo(SeededBoardGenerator.kGoalMinPairsFloor));
+        expect(SeededBoardGenerator.goalMinPairsFloor(g.board, sgGoals, target), g.goalMinPairs);
+        expect(g.goalMinPairsMet, g.goalMinPairs! >= target);
+        expect(
+          shortWinCheck(g.board, sgGoals, SeededBoardGenerator.kGoalMinPairsFloor - 1, addNumbersLimit: 0),
+          ShortWinCheck.notWinnableWithin,
+          reason: 'level ${l.id}',
+        );
+      }
+      if (SeededBoardGenerator.kRequireGreedyWinLevels.contains(l.id)) {
+        expect(
+          greedyPairsToWin(g.board, l.goals, addNumbersLimit: l.addNumbersLimit),
+          isNotNull,
+          reason: 'level ${l.id}',
+        );
+      }
+    }
+  });
+
   test('minPairs rejects too-short boards and reseeds', () {
     final l = pack.levels[6]; // level 7: 3 stars, trivially short by default
     const strict = SeededBoardGenerator(minPairs: 3);
@@ -76,8 +145,8 @@ void main() {
           int.parse(m[1]!): int.parse(m[2]!),
       };
       final sw = Stopwatch()..start();
-      for (final l in pack.levels) {
-        final g = gen.generateDetailed(l);
+      for (final l in pack.levels.where((l) => generated.containsKey(l.id))) {
+        final g = generated[l.id]!;
         final b = g.board;
         expect(g.seedUsed, seeds[l.id], reason: 'documented seed for level ${l.id}');
         expect(b.columns, l.columns);
@@ -94,8 +163,8 @@ void main() {
       }
       sw.stop();
       // ignore: avoid_print
-      print('30 levels generated + verified in ${sw.elapsedMilliseconds} ms');
-      expect(sw.elapsed.inSeconds, lessThan(30));
+      print('30 levels generated + verified in ${generateMs + sw.elapsedMilliseconds} ms');
+      expect(generateMs + sw.elapsedMilliseconds, lessThan(30000));
     },
     timeout: const Timeout(Duration(seconds: 90)),
   );

@@ -20,10 +20,19 @@ void main() {
     )
     ..writeln('* greedy: `greedyPairsToWin` (≤ level addNumbersLimit = 5 Add numbers).')
     ..writeln()
-    ..writeln('| id | seed used | attempts | late placement | shortest win | greedy pairs |')
-    ..writeln('|---|---|---|---|---|---|');
+    ..writeln('* goal-minPairs: proven min pairs (no Add numbers) to collect all star+grass goals / target;')
+    ..writeln('  `BEST-EFFORT` = target not reached within budget, best board kept (>= 3).')
+    ..writeln()
+    ..writeln('| id | seed used | attempts | late placement | shortest win | greedy pairs | goal-minPairs |')
+    ..writeln('|---|---|---|---|---|---|---|');
   for (final l in pack.levels.where((l) => l.id >= 4)) {
-    final g = const SeededBoardGenerator().generateDetailed(l);
+    final GeneratedLevel g;
+    try {
+      g = const SeededBoardGenerator().generateDetailed(l);
+    } on StateError catch (e) {
+      out.writeln('| ${l.id} | FAILED | – | – | – | – | ${e.message} |');
+      continue;
+    }
     var shortest = 'budget';
     for (var k = 1; k <= 60; k++) {
       final r = shortWinCheck(g.board, l.goals, k, nodeBudget: 200000);
@@ -39,7 +48,8 @@ void main() {
     final greedy = greedyPairsToWin(g.board, l.goals, addNumbersLimit: l.addNumbersLimit);
     out.writeln(
       '| ${l.id} | ${g.seedUsed} | ${g.attempts} | ${g.latePlacement ? 'yes' : 'FALLBACK'} '
-      '| $shortest | ${greedy ?? 'stuck'} |',
+      '| $shortest | ${greedy ?? 'stuck'} '
+      '| ${g.goalMinPairsMet == null ? '–' : '${g.goalMinPairs} / ${g.goalMinPairsTarget} ${g.goalMinPairsMet! ? 'met' : 'BEST-EFFORT'}'} |',
     );
   }
   File('docs/level-metrics.md').writeAsStringSync(out.toString());

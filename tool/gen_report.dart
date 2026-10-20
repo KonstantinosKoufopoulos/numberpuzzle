@@ -20,7 +20,16 @@ void main() {
     ..writeln('| id | level seed | seed used | attempts | solution moves |')
     ..writeln('|---|---|---|---|---|');
   for (final l in pack.levels) {
-    final g = const SeededBoardGenerator().generateDetailed(l);
+    final t = sw.elapsedMilliseconds;
+    final GeneratedLevel g;
+    try {
+      g = const SeededBoardGenerator().generateDetailed(l);
+    } on StateError catch (e) {
+      out.writeln('| ${l.id} | ${l.seed} | FAILED | – | ${e.message} |');
+      stdout.writeln('L${l.id} FAILED ${sw.elapsedMilliseconds - t} ms');
+      continue;
+    }
+    stdout.writeln('L${l.id} ${sw.elapsedMilliseconds - t} ms');
     out.writeln('| ${l.id} | ${l.seed} | ${g.seedUsed} | ${g.attempts} | ${g.solution.moves.length} |');
   }
   File('docs/generated-seeds.md').writeAsStringSync(out.toString());

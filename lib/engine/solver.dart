@@ -215,26 +215,29 @@ class DfsSolver implements Solver {
   }
 
   static String _key(_Node s) {
-    final sb = StringBuffer()
-      ..write(s.adds)
-      ..write('|')
-      ..write(s.progress.done.join(','))
-      ..write('|');
-    for (final c in s.board.cells) {
-      final o = c.obstacle;
-      sb.writeCharCode(
-        o == null
-            ? (c.value == null ? 46 : 48 + c.value!)
-            : switch (o.kind) {
-                ObstacleKind.stone => 83,
-                ObstacleKind.slime => 76,
-                ObstacleKind.ice => 64 + (c.value ?? 0) * 3 + o.hp,
-              },
-      );
-      if (c.item != null) sb.write('*');
-      if (c.grass) sb.write('g');
+    final cells = s.board.cells;
+    final done = s.progress.done;
+    final codes = List<int>.filled(cells.length + done.length + 1, 0);
+    var k = 0;
+    codes[k++] = 33 + s.adds;
+    for (final d in done) {
+      codes[k++] = 40 + d;
     }
-    return sb.toString();
+    for (final c in cells) {
+      final o = c.obstacle;
+      var code = c.value ?? 0; // 0..9
+      if (o != null) {
+        code += switch (o.kind) {
+          ObstacleKind.stone => 10,
+          ObstacleKind.slime => 20,
+          ObstacleKind.ice => 30 + o.hp * 10,
+        };
+      }
+      if (c.item != null) code += 100;
+      if (c.grass) code += 200;
+      codes[k++] = 256 + code;
+    }
+    return String.fromCharCodes(codes);
   }
 
   /// True when some goal can provably no longer be reached.
@@ -358,23 +361,22 @@ ShortWinCheck shortWinCheck(
     if (_lowerBoundPairs(s.progress) > depthLeft) return false;
     if (depthLeft > 0) {
       for (final (a, b) in fastValidPairs(s.board)) {
-        final (r, ids) = _applyWithIds(s.board, s.ids, a, b);
+        final r = applyPair(s.board, a, b);
         final prog = s.progress.copy()..onPair(r);
-        if (dfs(_Node(r.board, ids, prog, s.adds), depthLeft - 1)) return true;
+        if (dfs(_Node(r.board, const [], prog, s.adds), depthLeft - 1)) return true;
         if (timedOut) return false;
       }
     }
     if (s.adds < addNumbersLimit) {
       final nb = addNumbers(s.board);
-      if (nb.length != s.board.length &&
-          dfs(_Node(nb, _idsAfterAdd(s.board, s.ids, nb), s.progress, s.adds + 1), depthLeft)) {
+      if (nb.length != s.board.length && dfs(_Node(nb, const [], s.progress, s.adds + 1), depthLeft)) {
         return true;
       }
     }
     return false;
   }
 
-  final root = _Node(board, List<int>.generate(board.length, (i) => i), GoalProgress(goals), 0);
+  final root = _Node(board, const [], GoalProgress(goals), 0);
   final found = dfs(root, maxPairs);
   onNodes?.call(nodes);
   if (found) return ShortWinCheck.winnableWithin;
