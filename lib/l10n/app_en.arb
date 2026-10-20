@@ -1,0 +1,34 @@
+{
+  "@@locale": "en",
+  "appTitle": "Number Puzzle",
+  "classic": "Classic",
+  "daily": "Daily",
+  "level": "Level {n}",
+  "@level": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "goals": "Goals",
+  "addNumbers": "Add numbers",
+  "undo": "Undo",
+  "win": "Level complete!",
+  "continueLabel": "Continue",
+  "debugWin": "Win (debug)",
+  "watchAdReward": "Watch ad for a booster",
+  "noAdAvailable": "No ad available right now",
+  "comingSoon": "Coming soon",
+  "introStarsTitle": "Stars",
+  "introStarsBody": "Clear the number on a star to collect it.",
+  "introGrassTitle": "Grass",
+  "introGrassBody": "Clear numbers on grass to collect it.",
+  "introStoneTitle": "Stone",
+  "introStoneBody": "Stones never break and block lines like a number.",
+  "introIceTitle": "Ice",
+  "introIceBody": "Frozen numbers can't be selected. Clear a neighbour to crack the ice.",
+  "introSlimeTitle": "Slime",
+  "introSlimeBody": "Slime disappears when every cell around it is empty.",
+  "gotIt": "Got it"
+}
