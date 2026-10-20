@@ -73,3 +73,18 @@ unknown `gift`/`introduces`/goal type rejected.
  "layers":{"stars":6,"stone":2,"ice":{"count":3,"hpMin":2,"hpMax":2}},
  "addNumbersLimit":5}
 ```
+
+### M1 engine decisions
+* `GameState` (lib/engine/game.dart) is immutable; undo restores the previous
+  snapshot (board, goal progress, Add numbers used). `boostersUsed` is never
+  rolled back so undo cannot restore a 3-star rating.
+* Hammer: number → cleared (collects star/grass, damages adjacent ice);
+  ice-covered number → whole ice removed (counts as broken), number stays;
+  slime → removed; stone/empty → not allowed. Hammer clears don't count as
+  pairs for `pairsSame`/`pairsTen`.
+* Swap: exchanges digits of two selectable numbers; star/grass stay put.
+* Goal `number` counts every cleared cell with that digit, including copies
+  appended by Add numbers.
+* Generator also keeps slime away from other slime and ice and out of
+  corners (so it can always be uncovered). Seeds actually used per level are
+  in `docs/generated-seeds.md`.
