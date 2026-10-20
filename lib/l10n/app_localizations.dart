@@ -241,6 +241,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Got it'**
   String get gotIt;
+
+  /// No description provided for @mapDailyStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily · {n}-day streak'**
+  String mapDailyStreak(int n);
+
+  /// No description provided for @mapClassicContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic · Continue'**
+  String get mapClassicContinue;
+
+  /// No description provided for @mapWorld.
+  ///
+  /// In en, this message translates to:
+  /// **'World 1 · {total} levels · {done}/{total}'**
+  String mapWorld(int total, int done);
+
+  /// No description provided for @mapPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play {n}'**
+  String mapPlay(int n);
+
+  /// No description provided for @startCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get startCta;
+
+  /// No description provided for @startNoTimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Goals · no timer'**
+  String get startNoTimer;
+
+  /// No description provided for @startStars.
+  ///
+  /// In en, this message translates to:
+  /// **'3★ no boosters · 2★ one · 1★ two or more (Add numbers doesn\'t count)'**
+  String get startStars;
+
+  /// No description provided for @introNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Level {n} · New: {name}'**
+  String introNew(int n, String name);
+
+  /// No description provided for @introOk.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get introOk;
+
+  /// No description provided for @giftTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift: {booster} ×{count}'**
+  String giftTitle(String booster, int count);
+
+  /// No description provided for @giftHammerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Clears a number or slime, or breaks all the ice. Doesn\'t work on stone.'**
+  String get giftHammerBody;
+
+  /// No description provided for @giftSwapBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap two neighbouring numbers to make a new pair.'**
+  String get giftSwapBody;
+
+  /// No description provided for @giftTakeHammer.
+  ///
+  /// In en, this message translates to:
+  /// **'Take the Hammer'**
+  String get giftTakeHammer;
+
+  /// No description provided for @giftTakeSwap.
+  ///
+  /// In en, this message translates to:
+  /// **'Take the Swap'**
+  String get giftTakeSwap;
+
+  /// No description provided for @boosterHammer.
+  ///
+  /// In en, this message translates to:
+  /// **'Hammer'**
+  String get boosterHammer;
+
+  /// No description provided for @boosterSwap.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap'**
+  String get boosterSwap;
+
+  /// No description provided for @boosterHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Hint'**
+  String get boosterHint;
+
+  /// No description provided for @winTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Well done!'**
+  String get winTitle;
+
+  /// No description provided for @winStarsRule.
+  ///
+  /// In en, this message translates to:
+  /// **'0 boosters → 3★ · 1 → 2★ · 2+ → 1★'**
+  String get winStarsRule;
+
+  /// No description provided for @winNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next level'**
+  String get winNext;
+
+  /// No description provided for @winMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get winMap;
+
+  /// No description provided for @loseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of moves'**
+  String get loseTitle;
+
+  /// No description provided for @loseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No pairs left and no Add numbers. Try again — your logic counts, not luck.'**
+  String get loseBody;
+
+  /// No description provided for @loseRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Play again'**
+  String get loseRetry;
+
+  /// No description provided for @loseReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Video: +1 Add numbers'**
+  String get loseReward;
+
+  /// No description provided for @debugLose.
+  ///
+  /// In en, this message translates to:
+  /// **'Lose (debug)'**
+  String get debugLose;
+
+  /// No description provided for @debugBoosters.
+  ///
+  /// In en, this message translates to:
+  /// **'Boosters used: {n}'**
+  String debugBoosters(int n);
+
+  /// No description provided for @goalPairsSame.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear {count} equal pairs'**
+  String goalPairsSame(int count);
+
+  /// No description provided for @goalPairsTen.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear {count} pairs summing to 10'**
+  String goalPairsTen(int count);
+
+  /// No description provided for @goalNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear {count} × {value}'**
+  String goalNumber(int count, int value);
+
+  /// No description provided for @goalStar.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect {count} ★'**
+  String goalStar(int count);
+
+  /// No description provided for @goalGrass.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear {count} grass'**
+  String goalGrass(int count);
+
+  /// No description provided for @goalIce.
+  ///
+  /// In en, this message translates to:
+  /// **'Break {count} ice'**
+  String goalIce(int count);
+
+  /// No description provided for @goalSlime.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear {count} slime'**
+  String goalSlime(int count);
+
+  /// No description provided for @goalOther.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} × {count}'**
+  String goalOther(String name, int count);
 }
 
 class _AppLocalizationsDelegate

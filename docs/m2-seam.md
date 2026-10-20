@@ -1,0 +1,82 @@
+# M2 seam: shell ↔ game screen
+
+Branch `m2-shell` owns map / level-start / intro+gift cards / win / lose /
+progress / ad hooks. Branch `m2-gameplay` owns the board screen. They meet
+only through `lib/game/game_result.dart`.
+
+## API (`lib/game/game_result.dart`)
+
+```dart
+class GameResult {
+  const GameResult({required int levelId, required bool won,
+      required int boostersUsed, required int starsEarned,
+      Map<String, int> boostersSpent = const {}});
+  factory GameResult.win({required int levelId, required int boostersUsed,
+      Map<String, int> boostersSpent = const {}}); // stars = starsForWin(boostersUsed)
+  factory GameResult.lose({required int levelId, int boostersUsed = 0,
+      Map<String, int> boostersSpent = const {}}); // stars = 0
+}
+
+class GameArgs {
+  final Level level;                 // level to play (engine/level.dart)
+  final AdService ads;               // for in-level rewarded buttons (booster at 0 → ▶)
+  final Map<String, int> boosters;   // inventory snapshot: 'hammer','swap','hint'
+  final bool isDaily;                // always false in M2
+  final int extraAddNumbers;         // +N "Add numbers" granted by lose-screen rewarded ad
+}
+
+typedef GameScreenBuilder = Widget Function(BuildContext context, GameArgs args);
+
+class GameRoute extends MaterialPageRoute<GameResult> {
+  GameRoute({required int levelId, required GameArgs args, required GameScreenBuilder builder});
+}
+```
+
+## Contract for the game screen
+
+1. Build from `GameArgs`. Do NOT show the level-start sheet, intro or gift
+   cards, win or lose screens: the shell does that.
+2. When the level ends, `Navigator.pop(context, GameResult.win(...))` or
+   `Navigator.pop(context, GameResult.lose(...))`.
+   Popping with `null` (back button) = abandoned; nothing is recorded.
+3. `boostersUsed` counts hammer/swap/hint uses only. Add numbers and undo
+   NEVER count (`starsForWin` in `engine/scoring.dart`: 0→3★, 1→2★, 2+→1★).
+4. Report per-booster uses in `boostersSpent` (e.g. `{'hammer': 1}`); the
+   shell decrements the persisted inventory. Boosters earned in-level from a
+   rewarded ad: grant AND spend inside the level (don't add to `boostersSpent`
+   unless it came from inventory) – or ask the shell owner for a callback.
+5. Never show an interstitial. The shell calls
+   `AdService.maybeShowInterstitial` only after the win screen's **Next**.
+
+## Plugging in (one line)
+
+`lib/ui/app.dart`:
+
+```dart
+const GameScreenBuilder kDefaultGameScreen = StubGameScreen.builder;
+// → const GameScreenBuilder kDefaultGameScreen = BoardGameScreen.builder;
+```
+
+(or pass `gameBuilder:` to `NumberPuzzleApp`). `StubGameScreen`
+(`lib/ui/game_screen.dart`) stays as the debug/test stub: booster ± counter,
+"Win (debug)", "Lose (debug)".
+
+## Shell flow (lib/ui/level_map_screen.dart)
+
+map node / Play N → level-start sheet (goals, star rule, Start) → gift card
+(first time a `gift` level is reached; +2 boosters; key `gift:<id>`) → intro
+card (first time `introduces` is seen; key `intro:<id>`) → `GameRoute` →
+- won: save best stars + unlock next → WinScreen → Next ⇒ interstitial hook →
+  next level's start sheet; Map ⇒ map.
+- lost: LoseScreen → Play again (restarts, no start sheet) / ▶ +1 Add numbers
+  (only after `onUserEarnedReward`; restarts the level with
+  `extraAddNumbers += 1`) / Map. No ad loaded ⇒ «Δεν υπάρχει διαθέσιμη
+  διαφήμιση τώρα».
+
+## Progress (lib/storage/progress_store.dart)
+
+shared_preferences key `progress`, JSON schema `v: 2`:
+`{v, stars:{"<id>":1..3}, unlocked, seenIntros:[...], boosters:{id:n}}`.
+Legacy `progress_v1` is read and migrated on next save. Parser is tolerant
+(bad entries skipped, newer versions read best-effort). Stars never downgrade;
+unlocked never decreases. `ProgressController` (ChangeNotifier) wraps it.

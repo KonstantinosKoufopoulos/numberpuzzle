@@ -30,5 +30,153 @@
   "introIceBody": "Frozen numbers can't be selected. Clear a neighbour to crack the ice.",
   "introSlimeTitle": "Slime",
   "introSlimeBody": "Slime disappears when every cell around it is empty.",
-  "gotIt": "Got it"
+  "gotIt": "Got it",
+  "mapDailyStreak": "Daily · {n}-day streak",
+  "@mapDailyStreak": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "mapClassicContinue": "Classic · Continue",
+  "mapWorld": "World 1 · {total} levels · {done}/{total}",
+  "@mapWorld": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "done": {
+        "type": "int"
+      }
+    }
+  },
+  "mapPlay": "Play {n}",
+  "@mapPlay": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "startCta": "Start",
+  "startNoTimer": "Goals · no timer",
+  "startStars": "3★ no boosters · 2★ one · 1★ two or more (Add numbers doesn't count)",
+  "introNew": "Level {n} · New: {name}",
+  "@introNew": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "introOk": "Got it",
+  "giftTitle": "Gift: {booster} ×{count}",
+  "@giftTitle": {
+    "placeholders": {
+      "booster": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "giftHammerBody": "Clears a number or slime, or breaks all the ice. Doesn't work on stone.",
+  "giftSwapBody": "Swap two neighbouring numbers to make a new pair.",
+  "giftTakeHammer": "Take the Hammer",
+  "giftTakeSwap": "Take the Swap",
+  "boosterHammer": "Hammer",
+  "boosterSwap": "Swap",
+  "boosterHint": "Hint",
+  "winTitle": "Well done!",
+  "winStarsRule": "0 boosters → 3★ · 1 → 2★ · 2+ → 1★",
+  "winNext": "Next level",
+  "winMap": "Map",
+  "loseTitle": "Out of moves",
+  "loseBody": "No pairs left and no Add numbers. Try again — your logic counts, not luck.",
+  "loseRetry": "Play again",
+  "loseReward": "Video: +1 Add numbers",
+  "debugLose": "Lose (debug)",
+  "debugBoosters": "Boosters used: {n}",
+  "@debugBoosters": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "goalPairsSame": "Clear {count} equal pairs",
+  "@goalPairsSame": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalPairsTen": "Clear {count} pairs summing to 10",
+  "@goalPairsTen": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalNumber": "Clear {count} × {value}",
+  "@goalNumber": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "goalStar": "Collect {count} ★",
+  "@goalStar": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalGrass": "Clear {count} grass",
+  "@goalGrass": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalIce": "Break {count} ice",
+  "@goalIce": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalSlime": "Clear {count} slime",
+  "@goalSlime": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalOther": "{name} × {count}",
+  "@goalOther": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
