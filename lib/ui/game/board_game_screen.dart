@@ -8,6 +8,7 @@ import '../../engine/goals.dart';
 import '../../game/game_result.dart';
 import '../../l10n/app_localizations.dart';
 import '../../levels/board_source.dart';
+import '../../levels/prebaked_board_source.dart';
 import '../../levels/hint_runner.dart';
 import '../../storage/game_save_store.dart';
 import '../theme.dart';
@@ -40,9 +41,8 @@ class BoardGameScreen extends StatefulWidget {
   final GameSaveStore? saves;
   final Duration clearDuration;
 
-  /// App-wide board source. Swap this ONE line for the prebaked
-  /// `assets/levels/boards.json` source when it lands.
-  static LevelBoardSource defaultBoards = GeneratedBoardSource();
+  /// App-wide board source: pre-baked `assets/levels/boards.json`.
+  static LevelBoardSource defaultBoards = PrebakedBoardSource();
 
   static Widget builder(BuildContext context, GameArgs args) => BoardGameScreen(args: args);
 

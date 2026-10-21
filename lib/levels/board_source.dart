@@ -1,9 +1,8 @@
 /// Where starting boards come from.
 ///
-/// The app uses one [LevelBoardSource] (see `AppServices.boards`). Today it is
-/// [GeneratedBoardSource] (seeded generator in a background isolate). When the
-/// prebaked `assets/levels/boards.json` lands, add a source implementing this
-/// interface and swap that one line.
+/// The app uses `PrebakedBoardSource` (assets/levels/boards.json) as
+/// `BoardGameScreen.defaultBoards`. [GeneratedBoardSource] is kept only for
+/// tools and tests.
 library;
 
 import 'package:flutter/foundation.dart';

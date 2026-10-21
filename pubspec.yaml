@@ -63,6 +63,7 @@ flutter:
   generate: true
   assets:
     - assets/levels/
+    - assets/levels/boards.json # pre-baked boards (dart run tool/bake_boards.dart)
   # TODO(M3): bundle Manrope (SIL OFL 1.1) per design tokens; using platform font until then.
 
   # To add assets to your application, add an assets section, like this:
