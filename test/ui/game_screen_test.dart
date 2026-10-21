@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -308,6 +310,53 @@ void main() {
     expect(find.byKey(const Key('lose-no-ad')), findsNothing);
     expect(reward().onPressed, isNotNull);
   });
+
+  for (final granted in [false, true]) {
+    testWidgets(
+      'lose overlay: +1 shows a spinner and is non-tappable during the close grace wait (granted: $granted)',
+      (tester) async {
+        final pending = Completer<bool>();
+        var calls = 0;
+        await _pump(
+          tester,
+          level: _level(const [Goal(GoalType.pairsTen, 1)], add: 0),
+          board: Board.fromRows([
+            [1, 2, 4],
+            [3, 0, 5],
+          ]),
+          rewarded: () {
+            calls++;
+            return pending.future;
+          },
+        );
+        ButtonStyleButton reward() => tester.widget<ButtonStyleButton>(find.byKey(const Key('lose-reward')));
+        expect(find.byKey(const Key('lose-reward-spinner')), findsNothing);
+        await tester.tap(find.byKey(const Key('lose-reward')));
+        await tester.pump();
+        expect(find.byKey(const Key('lose-reward-spinner')), findsOneWidget);
+        expect(reward().onPressed, isNull);
+        await tester.tap(find.byKey(const Key('lose-reward')), warnIfMissed: false);
+        await tester.pump();
+        expect(calls, 1);
+        pending.complete(granted);
+        await tester.pump();
+        expect(find.byKey(const Key('lose-reward-spinner')), findsNothing);
+        if (granted) {
+          await tester.pumpAndSettle();
+          expect(find.byKey(const Key('lose-overlay')), findsNothing);
+          expect(find.text('1/1 left'), findsOneWidget);
+        } else {
+          expect(find.byKey(const Key('lose-no-ad')), findsOneWidget);
+          await tester.pump(kNoAdMessageDuration);
+          expect(reward().onPressed, isNotNull);
+          expect(
+            find.descendant(of: find.byKey(const Key('lose-reward')), matching: find.byIcon(Icons.play_arrow)),
+            findsOneWidget,
+          );
+        }
+      },
+    );
+  }
 
   testWidgets('lose overlay hierarchy: title, unmet goals, filled Retry, outlined reward, text Map', (tester) async {
     await _pump(
