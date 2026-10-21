@@ -86,7 +86,7 @@
     }
   },
   "giftHammerBody": "Clears a number or slime, or breaks all the ice. Doesn't work on stone.",
-  "giftSwapBody": "Swap two neighbouring numbers to make a new pair.",
+  "giftSwapBody": "Swaps any two numbers. Stars and grass stay put.",
   "giftTakeHammer": "Take the Hammer",
   "giftTakeSwap": "Take the Swap",
   "boosterHammer": "Hammer",

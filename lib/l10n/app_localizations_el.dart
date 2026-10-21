@@ -134,7 +134,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get giftSwapBody =>
-      'Άλλαξε θέση σε δύο γειτονικούς αριθμούς για νέο ζευγάρι.';
+      'Αλλάζει θέση σε δύο αριθμούς. Τα αστέρια και το γρασίδι μένουν στη θέση τους.';
 
   @override
   String get giftTakeHammer => 'Πάρε το Σφυρί';

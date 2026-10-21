@@ -131,8 +131,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Clears a number or slime, or breaks all the ice. Doesn\'t work on stone.';
 
   @override
-  String get giftSwapBody =>
-      'Swap two neighbouring numbers to make a new pair.';
+  String get giftSwapBody => 'Swaps any two numbers. Stars and grass stay put.';
 
   @override
   String get giftTakeHammer => 'Take the Hammer';

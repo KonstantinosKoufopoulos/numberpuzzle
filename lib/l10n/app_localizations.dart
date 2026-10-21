@@ -311,7 +311,7 @@ abstract class AppLocalizations {
   /// No description provided for @giftSwapBody.
   ///
   /// In en, this message translates to:
-  /// **'Swap two neighbouring numbers to make a new pair.'**
+  /// **'Swaps any two numbers. Stars and grass stay put.'**
   String get giftSwapBody;
 
   /// No description provided for @giftTakeHammer.
