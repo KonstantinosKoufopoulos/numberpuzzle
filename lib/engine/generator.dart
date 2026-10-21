@@ -13,6 +13,7 @@ library;
 
 import 'board.dart';
 import 'cell.dart';
+import 'digit_flip.dart';
 import 'goals.dart';
 import 'level.dart';
 import 'moves.dart';
@@ -151,6 +152,32 @@ class SeededBoardGenerator implements BoardGenerator {
   /// Generates and verifies; throws [StateError] (no fallback) when no board
   /// passes within [maxReseeds] seeds / [levelNodeBudget] nodes.
   GeneratedLevel generateDetailed(Level level) {
+    if (level.digitFlip) {
+      final g = generateDetailed(Level(
+        id: level.id,
+        columns: level.columns,
+        rows: level.rows,
+        seed: level.seed,
+        goals: flipGoals(level.goals),
+        layers: level.layers,
+        digitWeights: flipWeights(level.digitWeights),
+        addNumbersLimit: level.addNumbersLimit,
+        tier: level.tier,
+      ));
+      // Positions are unchanged, so the verified line stays valid.
+      return GeneratedLevel(
+        board: flipBoardDigits(g.board),
+        seedUsed: g.seedUsed,
+        attempts: g.attempts,
+        solution: g.solution,
+        latePlacement: g.latePlacement,
+        placementLine: g.placementLine,
+        goalMinPairs: g.goalMinPairs,
+        goalMinPairsTarget: g.goalMinPairsTarget,
+        goalMinPairsMet: g.goalMinPairsMet,
+        greedyRejects: g.greedyRejects,
+      );
+    }
     final sgGoals = [
       for (final g in level.goals)
         if (g.type == GoalType.star || g.type == GoalType.grass) g,

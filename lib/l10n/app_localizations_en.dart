@@ -353,6 +353,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dailyPlay => 'Play today\'s';
 
   @override
+  String get dailyLocked => 'Unlocks at level 8';
+
+  @override
   String get dailyDone => 'Done for today ✓';
 
   @override

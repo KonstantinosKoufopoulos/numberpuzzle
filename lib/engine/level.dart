@@ -77,6 +77,7 @@ class Level {
     this.introduces,
     this.tier = 1,
     this.note,
+    this.digitFlip = false,
   });
 
   final int id;
@@ -99,6 +100,11 @@ class Level {
   final String? introduces;
   final int tier;
   final String? note;
+
+  /// Daily variation: the board is generated for the un-flipped level
+  /// ([goals]/[digitWeights] mapped back with d -> 10 - d) and then every
+  /// digit is flipped. [goals] and [digitWeights] are already flipped.
+  final bool digitFlip;
 
   int get cellCount => columns * rows;
 
@@ -128,6 +134,7 @@ class Level {
       introduces: j['introduces'] as String?,
       tier: j['tier'] as int? ?? 1,
       note: j['note'] as String?,
+      digitFlip: j['digitFlip'] as bool? ?? false,
     );
   }
 
@@ -144,6 +151,7 @@ class Level {
         if (gift != null) 'gift': gift,
         if (introduces != null) 'introduces': introduces,
         if (note != null) 'note': note,
+        if (digitFlip) 'digitFlip': true,
       };
 
   /// Returns a list of human-readable problems; empty = valid.

@@ -360,6 +360,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get dailyPlay => 'Παίξε το σημερινό';
 
   @override
+  String get dailyLocked => 'Ξεκλειδώνει στο level 8';
+
+  @override
   String get dailyDone => 'Ολοκληρώθηκε για σήμερα ✓';
 
   @override

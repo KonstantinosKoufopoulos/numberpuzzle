@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../engine/digit_flip.dart';
 import '../engine/level.dart';
 
 /// yyyymmdd of the LOCAL calendar day of [t].
@@ -15,28 +16,56 @@ DateTime dayFromKey(int k) => DateTime(k ~/ 10000, k ~/ 100 % 100, k % 100);
 /// Mid-difficulty templates (map levels 8–20 without intro/gift cards).
 const int kDailyMinTemplate = 8, kDailyMaxTemplate = 20;
 
-/// The daily level for [day]: goals/layers/size of a mid map level picked by
-/// the date, with a date-derived seed. Same date ⇒ same level on every device.
-/// Its id is the day key (yyyymmdd), which never collides with map ids.
-Level dailyLevel(DateTime day, List<Level> pack) {
+/// Daily is locked until this map level has been completed.
+const int kDailyUnlockLevel = 8;
+
+/// Whether the daily challenge is available for [completedLevels] (map ids
+/// with at least one star).
+bool dailyUnlocked(Iterable<int> completedLevels) => completedLevels.contains(kDailyUnlockLevel);
+
+/// Whether [day]'s daily uses the digit flip (d -> 10 - d). Date-seeded.
+bool dailyDigitFlip(DateTime day) {
+  var h = (dayKey(day) * 0x9E3779B1) & 0xFFFFFFFF;
+  h ^= h >> 15;
+  h = (h * 0x85EBCA6B) & 0xFFFFFFFF;
+  h ^= h >> 13;
+  return h & 1 == 1;
+}
+
+/// The daily level for [day]: goals/layers/size of a mid map level (8–20)
+/// that the player has already completed ([completedLevels]), picked by the
+/// date, with a date-derived seed and a date-seeded digit flip (number goals
+/// and digit weights flipped consistently). Same date + same completed set ⇒
+/// same level. Its id is the day key (yyyymmdd), which never collides with
+/// map ids. Returns null while locked ([dailyUnlocked] is false).
+Level? dailyLevel(DateTime day, List<Level> pack, Iterable<int> completedLevels) {
+  if (!dailyUnlocked(completedLevels)) return null;
+  final done = completedLevels.toSet();
   final templates = [
     for (final l in pack)
-      if (l.id >= kDailyMinTemplate && l.id <= kDailyMaxTemplate && l.introduces == null && l.gift == null) l,
+      if (l.id >= kDailyMinTemplate &&
+          l.id <= kDailyMaxTemplate &&
+          l.introduces == null &&
+          l.gift == null &&
+          done.contains(l.id))
+        l,
   ];
-  if (templates.isEmpty) throw StateError('no daily templates');
+  if (templates.isEmpty) return null;
   final key = dayKey(day);
   final dayNumber = DateTime.utc(day.year, day.month, day.day).difference(DateTime.utc(2026)).inDays;
   final t = templates[dayNumber % templates.length];
+  final flip = dailyDigitFlip(day);
   return Level(
     id: key,
     columns: t.columns,
     rows: t.rows,
     seed: key * 31 + 7,
-    goals: t.goals,
+    goals: flip ? flipGoals(t.goals) : t.goals,
     layers: t.layers,
-    digitWeights: t.digitWeights,
+    digitWeights: flip ? flipWeights(t.digitWeights) : t.digitWeights,
     addNumbersLimit: t.addNumbersLimit,
     tier: t.tier,
+    digitFlip: flip,
   );
 }
 
@@ -49,7 +78,9 @@ class DailyState {
   bool isDone(DateTime day) => completed.contains(dayKey(day));
 
   /// Consecutive completed days ending today (or yesterday if today isn't
-  /// done yet, so the streak isn't shown as broken before playing).
+  /// done yet, so the streak isn't shown as broken before playing). A missed
+  /// day simply ends the run: the next win starts again from 1. There is no
+  /// "lost streak" state; days without a win are just not in [completed].
   int streak(DateTime today) {
     var d = DateTime(today.year, today.month, today.day);
     if (!isDone(d)) d = DateTime(d.year, d.month, d.day - 1);

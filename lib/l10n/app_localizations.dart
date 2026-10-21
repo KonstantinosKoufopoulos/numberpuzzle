@@ -662,6 +662,12 @@ abstract class AppLocalizations {
   /// **'Play today\'s'**
   String get dailyPlay;
 
+  /// No description provided for @dailyLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlocks at level 8'**
+  String get dailyLocked;
+
   /// No description provided for @dailyDone.
   ///
   /// In en, this message translates to:

@@ -338,6 +338,7 @@
     }
   },
   "dailyPlay": "Play today's",
+  "dailyLocked": "Unlocks at level 8",
   "dailyDone": "Done for today ✓",
   "dailyLegend": "Grey = completed · Dark = today",
   "classicOver": "No more moves",

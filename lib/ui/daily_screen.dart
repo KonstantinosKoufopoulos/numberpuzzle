@@ -14,7 +14,8 @@ import 'tokens.dart';
 /// Daily calendar (wireframe 10): streak card, month calendar (grey =
 /// completed, dark = today) and «Play today's». Winning marks the day done;
 /// a loss can be retried the same day. Never shows an interstitial
-/// (`GameArgs.isDaily = true`, no `maybeShowInterstitial` call).
+/// (`GameArgs.isDaily = true`, no `maybeShowInterstitial` call). Locked
+/// («Unlocks at level 8») until map level 8 is completed.
 class DailyScreen extends StatefulWidget {
   const DailyScreen({
     super.key,
@@ -53,7 +54,8 @@ class _DailyScreenState extends State<DailyScreen> {
 
   Future<void> _play() async {
     final today = widget.clock();
-    final level = dailyLevel(today, widget.pack);
+    final level = dailyLevel(today, widget.pack, widget.progress.progress.stars.keys);
+    if (level == null) return;
     final pc = widget.progress;
     while (mounted) {
       final result = await Navigator.of(context).push(
@@ -101,6 +103,7 @@ class _DailyScreenState extends State<DailyScreen> {
     final ink = theme.extension<GamePalette>()!;
     final s = _state;
     final today = widget.clock();
+    final unlocked = dailyUnlocked(widget.progress.progress.stars.keys);
     return Scaffold(
       appBar: AppBar(title: Text(t.dailyTitle), centerTitle: true),
       body: s == null
@@ -132,8 +135,8 @@ class _DailyScreenState extends State<DailyScreen> {
                   height: Tk.button + Tk.s,
                   child: FilledButton(
                     key: const Key('dailyPlay'),
-                    onPressed: s.isDone(today) ? null : _play,
-                    child: Text(s.isDone(today) ? t.dailyDone : t.dailyPlay),
+                    onPressed: !unlocked || s.isDone(today) ? null : _play,
+                    child: Text(!unlocked ? t.dailyLocked : (s.isDone(today) ? t.dailyDone : t.dailyPlay)),
                   ),
                 ),
                 const SizedBox(height: Tk.m),

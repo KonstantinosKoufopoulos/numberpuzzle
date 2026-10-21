@@ -94,6 +94,7 @@
   "dailyStreak": "♨ {n} ημέρες σερί",
   "dailyBest": "Καλύτερο: {n}",
   "dailyPlay": "Παίξε το σημερινό",
+  "dailyLocked": "Ξεκλειδώνει στο level 8",
   "dailyDone": "Ολοκληρώθηκε για σήμερα ✓",
   "dailyLegend": "Γκρι = ολοκληρώθηκε · Μαύρο = σήμερα",
   "classicOver": "Τέλος κινήσεων",

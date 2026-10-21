@@ -597,6 +597,20 @@ void main() {
       expect(await GameSaveStore().load(_level(const [])), isNull, reason: 'level slot untouched');
     });
 
+    testWidgets('a cleared board deals a new one with Add numbers refilled to 5/5', (tester) async {
+      await saveClassic([
+        [1, 9],
+      ], used: 4);
+      await _pump(tester, level: classicLevel(1), classic: true);
+      expect(find.text('1/5 left'), findsOneWidget);
+      await tester.tap(_cell(0));
+      await tester.tap(_cell(1));
+      await tester.pump(_clear);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('cell-35')), findsOneWidget, reason: 'new 9×4 board');
+      expect(find.text('5/5 left'), findsOneWidget);
+    });
+
     testWidgets('stuck: overlay shows the score; Map pops GameResult.lose with the score', (tester) async {
       await saveClassic(
         [

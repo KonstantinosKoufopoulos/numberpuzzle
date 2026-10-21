@@ -253,7 +253,9 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                       key: const Key('dailyEntry'),
                       icon: Icons.local_fire_department,
                       label: t.daily,
-                      sub: t.mapDailyStreak(_daily?.streak(widget.clock()) ?? 0),
+                      sub: dailyUnlocked(widget.progress.progress.stars.keys)
+                          ? t.mapDailyStreak(_daily?.streak(widget.clock()) ?? 0)
+                          : t.dailyLocked,
                       onTap: () => _openDaily(levels),
                     ),
                   ),

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:numberpuzzle/classic/classic.dart';
 import 'package:numberpuzzle/engine/board.dart';
 import 'package:numberpuzzle/engine/game.dart';
+import 'package:numberpuzzle/engine/level.dart';
 import 'package:numberpuzzle/engine/rules.dart' as rules;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -58,6 +59,36 @@ void main() {
     expect(n.addNumbersLeft, n.addNumbersLimit);
     expect(n.canUndo, isFalse);
     expect(n.endless, isTrue);
+  });
+
+  test('every new board after a clear refills Add numbers to 5', () {
+    var s = classicStart(42);
+    expect(s.addNumbersLimit, kDefaultAddNumbersLimit);
+    expect(kDefaultAddNumbersLimit, 5);
+    for (var stage = 0; stage < 4; stage++) {
+      // Use some Add numbers on this board, then clear it.
+      for (var i = 0; i < 1 + stage % 3; i++) {
+        s = s.addNumbers();
+      }
+      expect(s.addNumbersLeft, lessThan(5));
+      s = GameState.restore(
+        board: Board.fromRows([
+          [1, 9],
+        ]),
+        goals: const [],
+        done: const [],
+        addNumbersLimit: s.addNumbersLimit,
+        addNumbersUsed: s.addNumbersUsed,
+        boostersUsed: 0,
+        endless: true,
+        score: s.score,
+      ).pair(0, 1);
+      expect(s.board.isCleared, isTrue);
+      s = s.nextStage(classicNextBoard(42, s));
+      expect(s.addNumbersUsed, 0);
+      expect(s.addNumbersLeft, 5, reason: 'stage ${stage + 1}: refilled');
+      expect(s.board.length, 36);
+    }
   });
 
   test('best score keeps the max', () async {

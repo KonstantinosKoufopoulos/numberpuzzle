@@ -46,6 +46,9 @@ class FakeAds extends AdService {
   RewardedAdSource get rewardedSource => rewarded ?? super.rewardedSource;
 }
 
+final String _doneThrough8 =
+    '{"v":2,"stars":{${[for (var i = 1; i <= 8; i++) '"$i":1'].join(',')}},"unlocked":9,"seenIntros":[],"boosters":{}}';
+
 Future<ProgressController> pumpApp(
   WidgetTester tester,
   AdService ads, {
@@ -262,12 +265,39 @@ void main() {
     expect(pc.progress.boosterCount('hammer'), 2);
   });
 
+  testWidgets('daily: locked until level 8 is completed (card and screen)', (tester) async {
+    GameArgs? args;
+    await pumpApp(tester, FakeAds(), game: (c, a) {
+      args = a;
+      return StubGameScreen.builder(c, a);
+    });
+    expect(find.text('Unlocks at level 8'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('dailyEntry')));
+    for (var i = 0; i < 20 && find.byKey(const Key('dailyPlay')).evaluate().isEmpty; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+    final btn = tester.widget<FilledButton>(find.byKey(const Key('dailyPlay')));
+    expect(btn.onPressed, isNull);
+    expect(find.text('Unlocks at level 8'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('dailyPlay')));
+    await tester.pumpAndSettle();
+    expect(args, isNull);
+  });
+
+  testWidgets('daily (el): locked message', (tester) async {
+    await pumpApp(tester, FakeAds(), locale: 'el');
+    expect(find.text('Ξεκλειδώνει στο level 8'), findsOneWidget);
+  });
+
   testWidgets('daily: map card → calendar; win marks today done; isDaily and NO interstitial', (tester) async {
     GameArgs? args;
     final ads = FakeAds();
     await pumpApp(
       tester,
       ads,
+      prefs: {ProgressStore.key: _doneThrough8},
       game: (c, a) {
         args = a;
         return StubGameScreen.builder(c, a);
