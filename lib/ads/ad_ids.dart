@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart' show kReleaseMode;
 
 /// AdMob ids. Debug, profile and tests use ONLY Google's official test ids;
-/// the real ids are used exclusively in release builds.
+/// the real ids are used exclusively in release builds WITHOUT
+/// `--dart-define=ADS_TEST=true` (playtest release builds keep test ids).
 /// The App ID is injected into AndroidManifest via `manifestPlaceholders`
 /// per buildType in android/app/build.gradle.kts (keep both in sync).
 /// No banner ads in this game.
@@ -26,7 +27,11 @@ class AdIds {
     'ca-app-pub-1774874652706103/7060964803',
   );
 
-  static AdIds forMode({required bool release}) => release ? production : test;
+  /// `--dart-define=ADS_TEST=true`: force Google test ids even in release.
+  static const bool kAdsTestFlag = bool.fromEnvironment('ADS_TEST');
 
-  static const AdIds current = kReleaseMode ? production : test;
+  /// Real ids only when [release] && ![adsTest].
+  static AdIds forMode({required bool release, bool adsTest = false}) => release && !adsTest ? production : test;
+
+  static const AdIds current = kReleaseMode && !kAdsTestFlag ? production : test;
 }

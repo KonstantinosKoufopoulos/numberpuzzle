@@ -38,6 +38,8 @@ Font Manrope (SIL OFL 1.1) is planned (TODO, not bundled yet).
   never on Add numbers / undo.
 * Rewarded: only on user tap; reward granted only in `onUserEarnedReward`.
 * `--dart-define=ADS=false` disables the SDK entirely.
+* `--dart-define=ADS_TEST=true` forces Google test ids even in release.
+  Playtest builds = `flutter build apk --release --split-per-abi --dart-define=ADS_TEST=true`.
 
 ## Build
 ```bash

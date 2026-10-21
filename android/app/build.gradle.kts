@@ -1,3 +1,5 @@
+import java.util.Base64
+
 import java.util.Properties
 import java.io.FileInputStream
 
@@ -59,7 +61,12 @@ android {
         }
         release {
             // Production AdMob app id (keep in sync with lib/ads/ad_ids.dart).
-            manifestPlaceholders["admobAppId"] = "ca-app-pub-1774874652706103~3439168584"
+            // --dart-define=ADS_TEST=true (playtest) keeps Google's test app id.
+            val adsTest = (project.findProperty("dart-defines") as String?)
+                ?.split(",")
+                ?.any { String(Base64.getDecoder().decode(it)) == "ADS_TEST=true" } ?: false
+            manifestPlaceholders["admobAppId"] =
+                if (adsTest) "ca-app-pub-3940256099942544~3347511713" else "ca-app-pub-1774874652706103~3439168584"
             signingConfig = if (keystorePropertiesFile.exists())
                 signingConfigs.getByName("release") else signingConfigs.getByName("debug")
         }
