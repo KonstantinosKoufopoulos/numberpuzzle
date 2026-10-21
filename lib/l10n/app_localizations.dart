@@ -565,6 +565,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Retry'**
   String get retry;
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// No description provided for @settingsLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get settingsLanguage;
+
+  /// No description provided for @settingsTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get settingsTheme;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeDark;
+
+  /// No description provided for @optionSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get optionSystem;
+
+  /// No description provided for @languageGreek.
+  ///
+  /// In en, this message translates to:
+  /// **'Ελληνικά'**
+  String get languageGreek;
+
+  /// No description provided for @languageEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// No description provided for @settingsSound.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound'**
+  String get settingsSound;
+
+  /// No description provided for @settingsHaptics.
+  ///
+  /// In en, this message translates to:
+  /// **'Haptics'**
+  String get settingsHaptics;
+
+  /// No description provided for @settingsTutorial.
+  ///
+  /// In en, this message translates to:
+  /// **'Tutorial'**
+  String get settingsTutorial;
+
+  /// No description provided for @settingsTutorialReplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay'**
+  String get settingsTutorialReplay;
+
+  /// No description provided for @settingsTutorialDone.
+  ///
+  /// In en, this message translates to:
+  /// **'The tutorial will play again on level 1.'**
+  String get settingsTutorialDone;
 }
 
 class _AppLocalizationsDelegate

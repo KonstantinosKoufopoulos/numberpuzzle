@@ -299,4 +299,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get retry => 'Retry';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get settingsLanguage => 'Language';
+
+  @override
+  String get settingsTheme => 'Theme';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get optionSystem => 'System';
+
+  @override
+  String get languageGreek => 'Ελληνικά';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get settingsSound => 'Sound';
+
+  @override
+  String get settingsHaptics => 'Haptics';
+
+  @override
+  String get settingsTutorial => 'Tutorial';
+
+  @override
+  String get settingsTutorialReplay => 'Replay';
+
+  @override
+  String get settingsTutorialDone => 'The tutorial will play again on level 1.';
 }

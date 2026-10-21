@@ -85,5 +85,8 @@ class GameSaveStore {
 
   Future<bool> tutorialDone() async => (await SharedPreferences.getInstance()).getBool(tutorialKey) ?? false;
 
+  /// Settings → Tutorial → Replay.
+  Future<void> resetTutorial() async => (await SharedPreferences.getInstance()).remove(tutorialKey);
+
   Future<void> setTutorialDone() async => (await SharedPreferences.getInstance()).setBool(tutorialKey, true);
 }

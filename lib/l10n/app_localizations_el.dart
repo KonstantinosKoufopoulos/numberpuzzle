@@ -305,4 +305,44 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get retry => 'Ξανά';
+
+  @override
+  String get settingsTitle => 'Ρυθμίσεις';
+
+  @override
+  String get settingsLanguage => 'Γλώσσα';
+
+  @override
+  String get settingsTheme => 'Θέμα';
+
+  @override
+  String get themeLight => 'Φωτεινό';
+
+  @override
+  String get themeDark => 'Σκοτεινό';
+
+  @override
+  String get optionSystem => 'Σύστημα';
+
+  @override
+  String get languageGreek => 'Ελληνικά';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get settingsSound => 'Ήχος';
+
+  @override
+  String get settingsHaptics => 'Δόνηση';
+
+  @override
+  String get settingsTutorial => 'Οδηγός (tutorial)';
+
+  @override
+  String get settingsTutorialReplay => 'Επανάληψη';
+
+  @override
+  String get settingsTutorialDone =>
+      'Ο οδηγός θα εμφανιστεί ξανά στο επίπεδο 1.';
 }

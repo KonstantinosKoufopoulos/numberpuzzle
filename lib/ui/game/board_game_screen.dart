@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../engine/board.dart';
 import '../../engine/game.dart';
@@ -9,6 +10,7 @@ import '../../game/game_result.dart';
 import '../../l10n/app_localizations.dart';
 import '../../levels/board_source.dart';
 import '../../levels/hint_runner.dart';
+import '../../settings/settings_controller.dart';
 import '../../storage/game_save_store.dart';
 import '../theme.dart';
 import '../tokens.dart';
@@ -103,8 +105,22 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
     clearDuration: widget.clearDuration,
   );
 
+  int _lastMoves = -1;
+
+  /// Light feedback on each successful move (Settings: sound / haptics).
+  void _feedback(GameController c) {
+    final moves = c.state.moveCount;
+    if (_lastMoves >= 0 && moves > _lastMoves) {
+      final settings = SettingsScope.read(context);
+      if (settings?.haptics ?? false) HapticFeedback.lightImpact();
+      if (settings?.sound ?? false) SystemSound.play(SystemSoundType.click);
+    }
+    _lastMoves = moves;
+  }
+
   void _onChange() {
     final c = _c!;
+    _feedback(c);
     if (c.status == GameStatus.won && !_popped) {
       _popped = true;
       Timer(Tk.collapse, () {

@@ -307,5 +307,18 @@
   "tutSkip": "Skip",
   "loadingLevel": "Preparing the level…",
   "loadError": "We couldn't prepare this level. Please try again.",
-  "retry": "Retry"
+  "retry": "Retry",
+  "settingsTitle": "Settings",
+  "settingsLanguage": "Language",
+  "settingsTheme": "Theme",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "optionSystem": "System",
+  "languageGreek": "Ελληνικά",
+  "languageEnglish": "English",
+  "settingsSound": "Sound",
+  "settingsHaptics": "Haptics",
+  "settingsTutorial": "Tutorial",
+  "settingsTutorialReplay": "Replay",
+  "settingsTutorialDone": "The tutorial will play again on level 1."
 }

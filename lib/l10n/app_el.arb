@@ -77,5 +77,18 @@
   "tutSkip": "Παράλειψη",
   "loadingLevel": "Ετοιμάζουμε το επίπεδο…",
   "loadError": "Δεν ήταν δυνατή η προετοιμασία του επιπέδου. Δοκίμασε ξανά.",
-  "retry": "Ξανά"
+  "retry": "Ξανά",
+  "settingsTitle": "Ρυθμίσεις",
+  "settingsLanguage": "Γλώσσα",
+  "settingsTheme": "Θέμα",
+  "themeLight": "Φωτεινό",
+  "themeDark": "Σκοτεινό",
+  "optionSystem": "Σύστημα",
+  "languageGreek": "Ελληνικά",
+  "languageEnglish": "English",
+  "settingsSound": "Ήχος",
+  "settingsHaptics": "Δόνηση",
+  "settingsTutorial": "Οδηγός (tutorial)",
+  "settingsTutorialReplay": "Επανάληψη",
+  "settingsTutorialDone": "Ο οδηγός θα εμφανιστεί ξανά στο επίπεδο 1."
 }

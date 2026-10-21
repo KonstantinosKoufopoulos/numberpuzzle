@@ -8,10 +8,12 @@ import '../engine/level.dart';
 import '../game/game_result.dart';
 import '../l10n/app_localizations.dart';
 import '../levels/level_repository.dart';
+import '../settings/settings_controller.dart';
 import '../storage/progress_store.dart';
 import 'intro_cards.dart';
 import 'level_start_sheet.dart';
 import 'result_screens.dart';
+import 'settings_screen.dart';
 import 'theme.dart';
 
 enum NodeState { locked, unlocked, current }
@@ -26,12 +28,14 @@ class LevelMapScreen extends StatefulWidget {
     required this.levels,
     required this.progress,
     required this.gameBuilder,
+    this.settings,
   });
 
   final AdService ads;
   final LevelRepository levels;
   final ProgressController progress;
   final GameScreenBuilder gameBuilder;
+  final SettingsController? settings;
 
   @override
   State<LevelMapScreen> createState() => _LevelMapScreenState();
@@ -69,6 +73,15 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
   void _scrollToCurrent() {
     final ctx = _currentKey.currentContext;
     if (ctx != null) Scrollable.ensureVisible(ctx, alignment: 0.5, duration: const Duration(milliseconds: 300));
+  }
+
+  void _openSettings() {
+    final settings = widget.settings ?? SettingsScope.read(context);
+    if (settings == null) return;
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      settings: const RouteSettings(name: '/settings'),
+      builder: (_) => SettingsScreen(settings: settings),
+    ));
   }
 
   /// In-level rewarded (game lose overlay). True only after onUserEarnedReward.
@@ -145,7 +158,18 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(t.appTitle), centerTitle: true),
+      appBar: AppBar(
+        title: Text(t.appTitle),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            key: const Key('settingsButton'),
+            tooltip: t.settingsTitle,
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: _openSettings,
+          ),
+        ],
+      ),
       body: FutureBuilder<LevelPack>(
         future: _pack,
         builder: (context, snap) {
