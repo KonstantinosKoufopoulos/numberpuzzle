@@ -29,17 +29,19 @@ Only free, permissive (MIT/BSD/Apache) dependencies; no GPL.
 Font Manrope (SIL OFL 1.1) is planned (TODO, not bundled yet).
 
 ## Ads policy
-* Debug/profile/tests use **only Google test ids**; production ids only in
-  release (`kReleaseMode` in `lib/ads/ad_ids.dart`, App ID via
-  `manifestPlaceholders` per buildType). No banners.
+* Debug/profile/tests and plain release use **only Google test ids**
+  (`lib/ads/ad_ids.dart`, App ID via `manifestPlaceholders` in
+  `android/app/build.gradle.kts`). No banners.
 * UMP consent at startup.
 * Interstitial: never in levels 1–3, max one per 3 levels and ≥180 s apart,
   never in Daily, only after the win screen is dismissed – never mid-level,
   never on Add numbers / undo.
 * Rewarded: only on user tap; reward granted only in `onUserEarnedReward`.
 * `--dart-define=ADS=false` disables the SDK entirely.
-* `--dart-define=ADS_TEST=true` forces Google test ids even in release.
-  Playtest builds = `flutter build apk --release --split-per-abi --dart-define=ADS_TEST=true`.
+* Real AdMob ids ONLY in a release built with `--dart-define=ADS_REAL=true`;
+  every other build (debug, profile, plain release) uses Google test ids.
+  Playtest: `flutter build apk --release --split-per-abi`.
+  Play: `flutter build appbundle --release --dart-define=ADS_REAL=true`.
 
 ## Build
 ```bash

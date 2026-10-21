@@ -23,6 +23,6 @@ void main() {
     expect(AdIds.current.appId, startsWith('ca-app-pub-3940256099942544'));
     expect(AdIds.current.interstitial, startsWith('ca-app-pub-3940256099942544'));
     expect(AdIds.current.rewarded, startsWith('ca-app-pub-3940256099942544'));
-    expect(AdIds.forMode(release: true).appId, 'ca-app-pub-1774874652706103~3439168584');
+    expect(AdIds.forMode(release: true, adsReal: false), same(AdIds.test));
   });
 }

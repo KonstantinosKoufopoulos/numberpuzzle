@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart' show kReleaseMode;
 
-/// AdMob ids. Debug, profile and tests use ONLY Google's official test ids;
-/// the real ids are used exclusively in release builds WITHOUT
-/// `--dart-define=ADS_TEST=true` (playtest release builds keep test ids).
+/// AdMob ids. Every build uses Google's official test ids EXCEPT a release
+/// build with `--dart-define=ADS_REAL=true` (the Play upload). The real ids
+/// are only reachable behind the compile-time [kAdsReal] constant, so builds
+/// without it don't even contain them (tree-shaken).
 /// The App ID is injected into AndroidManifest via `manifestPlaceholders`
 /// per buildType in android/app/build.gradle.kts (keep both in sync).
 /// No banner ads in this game.
@@ -20,18 +21,21 @@ class AdIds {
     'ca-app-pub-3940256099942544/5224354917',
   );
 
-  /// Production ids (release only).
-  static const AdIds production = AdIds._(
+  /// Production ids: release && ADS_REAL only. Keep private and reference
+  /// them ONLY behind [kAdsReal] so other builds tree-shake them out.
+  static const AdIds _production = AdIds._(
     'ca-app-pub-1774874652706103~3439168584',
     'ca-app-pub-1774874652706103/1663052482',
     'ca-app-pub-1774874652706103/7060964803',
   );
 
-  /// `--dart-define=ADS_TEST=true`: force Google test ids even in release.
-  static const bool kAdsTestFlag = bool.fromEnvironment('ADS_TEST');
+  /// `--dart-define=ADS_REAL=true`: opt in to the real ids (release only).
+  static const bool kAdsReal = bool.fromEnvironment('ADS_REAL');
 
-  /// Real ids only when [release] && ![adsTest].
-  static AdIds forMode({required bool release, bool adsTest = false}) => release && !adsTest ? production : test;
+  /// Real ids only when [release] && [adsReal] AND the build was compiled
+  /// with ADS_REAL=true; otherwise test ids.
+  static AdIds forMode({required bool release, required bool adsReal}) =>
+      kAdsReal && release && adsReal ? _production : test;
 
-  static const AdIds current = kReleaseMode && !kAdsTestFlag ? production : test;
+  static const AdIds current = kAdsReal && kReleaseMode ? _production : test;
 }
