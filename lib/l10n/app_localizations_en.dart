@@ -23,9 +23,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get goals => 'Goals';
-
-  @override
   String get addNumbers => 'Add numbers';
 
   @override
@@ -35,13 +32,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get win => 'Level complete!';
 
   @override
-  String get debugWin => 'Win (debug)';
-
-  @override
   String get noAdAvailable => 'No ad available right now';
-
-  @override
-  String get comingSoon => 'Coming soon';
 
   @override
   String get introStarsTitle => 'Stars';
@@ -80,9 +71,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String mapDailyStreak(int n) {
     return 'Daily · $n-day streak';
   }
-
-  @override
-  String get mapClassicContinue => 'Classic · Continue';
 
   @override
   String mapWorld(int total, int done) {
@@ -155,15 +143,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loseRetry => 'Play again';
 
   @override
-  String get loseReward => 'Video: +1 Add numbers';
-
-  @override
-  String get debugLose => 'Lose (debug)';
-
-  @override
-  String debugBoosters(int n) {
-    return 'Boosters used: $n';
-  }
+  String get loseReward => '+1 Add numbers ▶';
 
   @override
   String goalPairsSame(int count) {
@@ -313,4 +293,84 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get retry => 'Retry';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get settingsLanguage => 'Language';
+
+  @override
+  String get settingsTheme => 'Theme';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get optionSystem => 'System';
+
+  @override
+  String get languageGreek => 'Ελληνικά';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get settingsSound => 'Sound';
+
+  @override
+  String get settingsHaptics => 'Haptics';
+
+  @override
+  String get settingsTutorial => 'Tutorial';
+
+  @override
+  String get settingsTutorialReplay => 'Replay';
+
+  @override
+  String get settingsTutorialDone => 'The tutorial will play again on level 1.';
+
+  @override
+  String get settingsPrivacy => 'Privacy & ads';
+
+  @override
+  String get dailyTitle => 'Daily puzzle';
+
+  @override
+  String dailyStreak(int n) {
+    return '♨ $n-day streak';
+  }
+
+  @override
+  String dailyBest(int n) {
+    return 'Best: $n';
+  }
+
+  @override
+  String get dailyPlay => 'Play today\'s';
+
+  @override
+  String get dailyLocked => 'Unlocks at level 8';
+
+  @override
+  String get dailyDone => 'Done for today ✓';
+
+  @override
+  String get dailyLegend => 'Grey = completed · Dark = today';
+
+  @override
+  String get classicOver => 'No more moves';
+
+  @override
+  String classicScore(int n) {
+    return 'Score $n';
+  }
+
+  @override
+  String mapClassicBest(int n) {
+    return 'Best $n';
+  }
 }

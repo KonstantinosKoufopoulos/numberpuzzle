@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
+import '../../classic/classic.dart';
 import '../../engine/board.dart';
 import '../../engine/game.dart';
 import '../../engine/goals.dart';
@@ -10,6 +12,7 @@ import '../../l10n/app_localizations.dart';
 import '../../levels/board_source.dart';
 import '../../levels/prebaked_board_source.dart';
 import '../../levels/hint_runner.dart';
+import '../../settings/settings_controller.dart';
 import '../../storage/game_save_store.dart';
 import '../theme.dart';
 import '../tokens.dart';
@@ -24,6 +27,9 @@ import 'game_controller.dart';
 /// stays saved for resume.
 /// How long the «no ad available» message stays up (also hidden on the next action).
 const Duration kNoAdMessageDuration = Duration(seconds: 3);
+
+/// Upper bound for a rewarded request before it counts as "no ad".
+const Duration kRewardedTimeout = Duration(minutes: 2);
 
 class BoardGameScreen extends StatefulWidget {
   const BoardGameScreen({
@@ -51,7 +57,15 @@ class BoardGameScreen extends StatefulWidget {
 }
 
 class _BoardGameScreenState extends State<BoardGameScreen> {
-  late final GameSaveStore _saves = widget.saves ?? GameSaveStore();
+  late final GameSaveStore _saves =
+      widget.saves ??
+      (widget.args.isClassic
+          ? GameSaveStore.classic()
+          : (widget.args.isDaily ? GameSaveStore.daily() : GameSaveStore()));
+
+  /// Classic seed: the saved game's seed on resume, else the level's.
+  late int _seed = widget.args.level.seed;
+  bool get _classic => widget.args.isClassic;
   GameController? _c;
   bool _error = false;
   bool _popped = false;
@@ -73,7 +87,11 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
       final saved = await _saves.load(level);
       final GameController c;
       if (saved != null) {
+        if (_classic && saved.seed != null) _seed = saved.seed!;
         c = _controller(saved.initialBoard, saved.state, saved.spent, tutorialDone);
+      } else if (_classic) {
+        final s = classicStart(_seed);
+        c = _controller(s.board, s, const {}, true);
       } else {
         final board = await (widget.boards ?? BoardGameScreen.defaultBoards).boardFor(level);
         final s = GameState.forLevel(level, board);
@@ -94,14 +112,30 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
     boosters: widget.args.boosters,
     spent: spent,
     onBoosterSpent: widget.args.onBoosterSpent,
+    nextStageBoard: _classic ? (g) => classicNextBoard(_seed, g) : null,
+    seed: _classic ? _seed : null,
     tutorialDone: tutorialDone,
     store: _saves,
     hints: widget.hints,
     clearDuration: widget.clearDuration,
   );
 
+  int _lastMoves = -1;
+
+  /// Light feedback on each successful move (Settings: sound / haptics).
+  void _feedback(GameController c) {
+    final moves = c.state.moveCount;
+    if (_lastMoves >= 0 && moves > _lastMoves) {
+      final settings = SettingsScope.read(context);
+      if (settings?.haptics ?? false) HapticFeedback.lightImpact();
+      if (settings?.sound ?? false) SystemSound.play(SystemSoundType.click);
+    }
+    _lastMoves = moves;
+  }
+
   void _onChange() {
     final c = _c!;
+    _feedback(c);
     if (c.status == GameStatus.won && !_popped) {
       _popped = true;
       Timer(Tk.collapse, () {
@@ -182,12 +216,21 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
     final cb = widget.args.onRequestRewarded;
     _hideMessages();
     setState(() => _rewardBusy = true);
-    final ok = cb == null ? false : await cb().catchError((Object _) => false);
+    var ok = false;
+    try {
+      // Sync throws, async errors and a callback that never completes (e.g.
+      // the SDK never reports close) all count as "no ad" so the button
+      // can't get stuck disabled.
+      if (cb != null) ok = await cb().timeout(kRewardedTimeout, onTimeout: () => false);
+    } on Object {
+      ok = false;
+    }
     if (!mounted) return;
     setState(() {
       _rewardBusy = false;
       _noAd = !ok;
     });
+    _noAdTimer?.cancel();
     if (!ok) _noAdTimer = Timer(kNoAdMessageDuration, () => mounted ? setState(() => _noAd = false) : null);
     if (ok) _c!.continueWithExtraAddNumbers();
   }
@@ -204,6 +247,7 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
         boostersUsed: c.state.boostersUsed,
         boostersSpent: Map.of(c.spent),
         retry: retry,
+        score: c.state.score,
       ),
     );
   }
@@ -219,7 +263,10 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
         if (!didPop && lost) _exit(retry: false); // Android back on the lose overlay = Map
       },
       child: Scaffold(
-        appBar: AppBar(title: Text(t.level(widget.args.level.id)), centerTitle: true),
+        appBar: AppBar(
+          title: Text(_classic ? t.classic : (widget.args.isDaily ? t.dailyTitle : t.level(widget.args.level.id))),
+          centerTitle: true,
+        ),
         body: SafeArea(
           child: c == null
               ? (_error ? _errorView(t) : _loadingView(t))
@@ -262,7 +309,7 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
       padding: const EdgeInsets.symmetric(horizontal: Tk.s),
       child: Column(
         children: [
-          _Hud(state: c.state),
+          _Hud(state: c.state, classic: _classic),
           if (c.tutorialStep > 0) _tutorial(t, c),
           if (c.mode != ToolMode.none) _modeBanner(t, c),
           if (c.hintBusy) Padding(padding: const EdgeInsets.all(Tk.xs), child: Text(t.hintSearching)),
@@ -370,29 +417,32 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
   Widget _boosterBar(AppLocalizations t, GameController c) => Row(
     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
     children: [
-      _BoosterButton(
-        id: BoosterId.hammer,
-        icon: Icons.gavel,
-        label: t.boosterHammer,
-        count: c.boosterCount(BoosterId.hammer),
-        active: c.mode == ToolMode.hammer,
-        onTap: () => _tool(ToolMode.hammer),
-      ),
-      _BoosterButton(
-        id: BoosterId.swap,
-        icon: Icons.swap_horiz,
-        label: t.boosterSwap,
-        count: c.boosterCount(BoosterId.swap),
-        active: c.mode == ToolMode.swap,
-        onTap: () => _tool(ToolMode.swap),
-      ),
-      _BoosterButton(
-        id: BoosterId.hint,
-        icon: Icons.auto_awesome,
-        label: t.boosterHint,
-        count: c.boosterCount(BoosterId.hint),
-        onTap: _hint,
-      ),
+      // Classic: inventory boosters stay for levels; only undo here.
+      if (!_classic) ...[
+        _BoosterButton(
+          id: BoosterId.hammer,
+          icon: Icons.gavel,
+          label: t.boosterHammer,
+          count: c.boosterCount(BoosterId.hammer),
+          active: c.mode == ToolMode.hammer,
+          onTap: () => _tool(ToolMode.hammer),
+        ),
+        _BoosterButton(
+          id: BoosterId.swap,
+          icon: Icons.swap_horiz,
+          label: t.boosterSwap,
+          count: c.boosterCount(BoosterId.swap),
+          active: c.mode == ToolMode.swap,
+          onTap: () => _tool(ToolMode.swap),
+        ),
+        _BoosterButton(
+          id: BoosterId.hint,
+          icon: Icons.auto_awesome,
+          label: t.boosterHint,
+          count: c.boosterCount(BoosterId.hint),
+          onTap: _hint,
+        ),
+      ],
       _BoosterButton(id: 'undo', icon: Icons.undo, label: t.undo, onTap: c.state.canUndo ? c.undo : null),
     ],
   );
@@ -422,8 +472,18 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(t.stuckTitle, key: const Key('lose-title'), style: theme.textTheme.titleLarge),
+                    Text(
+                      _classic ? t.classicOver : t.stuckTitle,
+                      key: const Key('lose-title'),
+                      style: theme.textTheme.titleLarge,
+                    ),
                     const SizedBox(height: Tk.m),
+                    if (_classic)
+                      Text(
+                        t.classicScore(c.state.score),
+                        key: const Key('lose-score'),
+                        style: theme.textTheme.headlineSmall,
+                      ),
                     Wrap(
                       spacing: Tk.s,
                       runSpacing: Tk.s,
@@ -448,20 +508,24 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
                     SizedBox(
                       width: double.infinity,
                       height: Tk.button,
-                      child: OutlinedButton.icon(
+                      child: OutlinedButton(
                         key: const Key('lose-reward'),
                         onPressed: noAd || _rewardBusy ? null : _reward,
-                        icon: _rewardBusy
-                            ? const SizedBox(
-                                key: Key('lose-reward-spinner'),
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                        child: _rewardBusy
+                            ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const SizedBox(
+                                    key: Key('lose-reward-spinner'),
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(t.loseReward),
+                                ],
                               )
                             : noAd
-                            ? const SizedBox.shrink()
-                            : const Icon(Icons.play_arrow),
-                        label: noAd
                             ? Text(t.noAdAvailable, key: const Key('lose-no-ad'), textAlign: TextAlign.center)
                             : Text(t.loseReward),
                       ),
@@ -481,8 +545,9 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
 
 /// HUD: up to 3 goal chips with live progress (no timer).
 class _Hud extends StatelessWidget {
-  const _Hud({required this.state});
+  const _Hud({required this.state, this.classic = false});
   final GameState state;
+  final bool classic;
 
   static String chip(AppLocalizations t, Goal g, int d) => switch (g.type) {
     GoalType.number => t.goalChipNumber(g.value ?? 0, d, g.count),
@@ -513,6 +578,15 @@ class _Hud extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(t.startNoTimer, style: theme.textTheme.bodySmall?.copyWith(color: ink.textMuted)),
+          if (classic)
+            Padding(
+              padding: const EdgeInsets.only(top: Tk.xs),
+              child: Text(
+                t.classicScore(state.score),
+                key: const Key('classic-score'),
+                style: theme.textTheme.titleMedium,
+              ),
+            ),
           const SizedBox(height: Tk.xs),
           Row(
             children: [

@@ -122,12 +122,6 @@ abstract class AppLocalizations {
   /// **'Level {n}'**
   String level(int n);
 
-  /// No description provided for @goals.
-  ///
-  /// In en, this message translates to:
-  /// **'Goals'**
-  String get goals;
-
   /// No description provided for @addNumbers.
   ///
   /// In en, this message translates to:
@@ -146,23 +140,11 @@ abstract class AppLocalizations {
   /// **'Level complete!'**
   String get win;
 
-  /// No description provided for @debugWin.
-  ///
-  /// In en, this message translates to:
-  /// **'Win (debug)'**
-  String get debugWin;
-
   /// No description provided for @noAdAvailable.
   ///
   /// In en, this message translates to:
   /// **'No ad available right now'**
   String get noAdAvailable;
-
-  /// No description provided for @comingSoon.
-  ///
-  /// In en, this message translates to:
-  /// **'Coming soon'**
-  String get comingSoon;
 
   /// No description provided for @introStarsTitle.
   ///
@@ -229,12 +211,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Daily · {n}-day streak'**
   String mapDailyStreak(int n);
-
-  /// No description provided for @mapClassicContinue.
-  ///
-  /// In en, this message translates to:
-  /// **'Classic · Continue'**
-  String get mapClassicContinue;
 
   /// No description provided for @mapWorld.
   ///
@@ -359,20 +335,8 @@ abstract class AppLocalizations {
   /// No description provided for @loseReward.
   ///
   /// In en, this message translates to:
-  /// **'Video: +1 Add numbers'**
+  /// **'+1 Add numbers ▶'**
   String get loseReward;
-
-  /// No description provided for @debugLose.
-  ///
-  /// In en, this message translates to:
-  /// **'Lose (debug)'**
-  String get debugLose;
-
-  /// No description provided for @debugBoosters.
-  ///
-  /// In en, this message translates to:
-  /// **'Boosters used: {n}'**
-  String debugBoosters(int n);
 
   /// No description provided for @goalPairsSame.
   ///
@@ -589,6 +553,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Retry'**
   String get retry;
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// No description provided for @settingsLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get settingsLanguage;
+
+  /// No description provided for @settingsTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get settingsTheme;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeDark;
+
+  /// No description provided for @optionSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get optionSystem;
+
+  /// No description provided for @languageGreek.
+  ///
+  /// In en, this message translates to:
+  /// **'Ελληνικά'**
+  String get languageGreek;
+
+  /// No description provided for @languageEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// No description provided for @settingsSound.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound'**
+  String get settingsSound;
+
+  /// No description provided for @settingsHaptics.
+  ///
+  /// In en, this message translates to:
+  /// **'Haptics'**
+  String get settingsHaptics;
+
+  /// No description provided for @settingsTutorial.
+  ///
+  /// In en, this message translates to:
+  /// **'Tutorial'**
+  String get settingsTutorial;
+
+  /// No description provided for @settingsTutorialReplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay'**
+  String get settingsTutorialReplay;
+
+  /// No description provided for @settingsTutorialDone.
+  ///
+  /// In en, this message translates to:
+  /// **'The tutorial will play again on level 1.'**
+  String get settingsTutorialDone;
+
+  /// No description provided for @settingsPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy & ads'**
+  String get settingsPrivacy;
+
+  /// No description provided for @dailyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily puzzle'**
+  String get dailyTitle;
+
+  /// No description provided for @dailyStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'♨ {n}-day streak'**
+  String dailyStreak(int n);
+
+  /// No description provided for @dailyBest.
+  ///
+  /// In en, this message translates to:
+  /// **'Best: {n}'**
+  String dailyBest(int n);
+
+  /// No description provided for @dailyPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play today\'s'**
+  String get dailyPlay;
+
+  /// No description provided for @dailyLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlocks at level 8'**
+  String get dailyLocked;
+
+  /// No description provided for @dailyDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done for today ✓'**
+  String get dailyDone;
+
+  /// No description provided for @dailyLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Grey = completed · Dark = today'**
+  String get dailyLegend;
+
+  /// No description provided for @classicOver.
+  ///
+  /// In en, this message translates to:
+  /// **'No more moves'**
+  String get classicOver;
+
+  /// No description provided for @classicScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Score {n}'**
+  String classicScore(int n);
+
+  /// No description provided for @mapClassicBest.
+  ///
+  /// In en, this message translates to:
+  /// **'Best {n}'**
+  String mapClassicBest(int n);
 }
 
 class _AppLocalizationsDelegate

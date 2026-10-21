@@ -5,6 +5,7 @@ import '../ads/ad_service.dart';
 import '../game/game_result.dart';
 import '../l10n/app_localizations.dart';
 import '../levels/level_repository.dart';
+import '../settings/settings_controller.dart';
 import '../storage/progress_store.dart';
 import 'game/board_game_screen.dart';
 import 'level_map_screen.dart';
@@ -14,12 +15,13 @@ import 'theme.dart';
 const GameScreenBuilder kDefaultGameScreen = BoardGameScreen.builder;
 
 class NumberPuzzleApp extends StatefulWidget {
-  const NumberPuzzleApp({super.key, required this.ads, this.levels, this.progress, this.gameBuilder});
+  const NumberPuzzleApp({super.key, required this.ads, this.levels, this.progress, this.gameBuilder, this.settings});
 
   final AdService ads;
   final LevelRepository? levels;
   final ProgressController? progress;
   final GameScreenBuilder? gameBuilder;
+  final SettingsController? settings;
 
   @override
   State<NumberPuzzleApp> createState() => _NumberPuzzleAppState();
@@ -28,9 +30,26 @@ class NumberPuzzleApp extends StatefulWidget {
 class _NumberPuzzleAppState extends State<NumberPuzzleApp> {
   late final ProgressController _progress = widget.progress ?? ProgressController(ProgressStore());
   late final LevelRepository _levels = widget.levels ?? LevelRepository();
+  late final SettingsController _settings = widget.settings ?? SettingsController();
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
+  void initState() {
+    super.initState();
+    if (!_settings.isLoaded) _settings.load();
+  }
+
+  @override
+  Widget build(BuildContext context) => SettingsScope(
+        controller: _settings,
+        child: ListenableBuilder(
+          listenable: _settings,
+          builder: (context, _) => _app(),
+        ),
+      );
+
+  Widget _app() => MaterialApp(
+        locale: _settings.locale,
+        themeMode: _settings.themeMode,
         onGenerateTitle: (c) => AppLocalizations.of(c).appTitle,
         theme: lightTheme,
         darkTheme: darkTheme,
@@ -46,6 +65,7 @@ class _NumberPuzzleAppState extends State<NumberPuzzleApp> {
           levels: _levels,
           progress: _progress,
           gameBuilder: widget.gameBuilder ?? kDefaultGameScreen,
+          settings: _settings,
         ),
       );
 }

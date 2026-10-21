@@ -4,14 +4,20 @@ import 'package:flutter/material.dart';
 
 import '../ads/ad_policy.dart';
 import '../ads/ad_service.dart';
+import '../classic/classic.dart';
+import '../daily/daily.dart';
 import '../engine/level.dart';
 import '../game/game_result.dart';
 import '../l10n/app_localizations.dart';
 import '../levels/level_repository.dart';
+import '../settings/settings_controller.dart';
+import '../storage/game_save_store.dart';
 import '../storage/progress_store.dart';
 import 'intro_cards.dart';
 import 'level_start_sheet.dart';
+import 'daily_screen.dart';
 import 'result_screens.dart';
+import 'settings_screen.dart';
 import 'theme.dart';
 
 enum NodeState { locked, unlocked, current }
@@ -26,12 +32,18 @@ class LevelMapScreen extends StatefulWidget {
     required this.levels,
     required this.progress,
     required this.gameBuilder,
+    this.settings,
+    this.clock = DateTime.now,
   });
 
   final AdService ads;
   final LevelRepository levels;
   final ProgressController progress;
   final GameScreenBuilder gameBuilder;
+  final SettingsController? settings;
+
+  /// Local clock (daily challenge day).
+  final DateTime Function() clock;
 
   @override
   State<LevelMapScreen> createState() => _LevelMapScreenState();
@@ -49,6 +61,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
     super.initState();
     widget.progress.addListener(_onProgress);
     if (!widget.progress.isLoaded) widget.progress.load();
+    _loadDaily();
+    _loadClassicBest();
   }
 
   @override
@@ -69,6 +83,74 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
   void _scrollToCurrent() {
     final ctx = _currentKey.currentContext;
     if (ctx != null) Scrollable.ensureVisible(ctx, alignment: 0.5, duration: const Duration(milliseconds: 300));
+  }
+
+  DailyState? _daily;
+
+  Future<void> _loadDaily() async {
+    final s = await DailyStore().load();
+    if (mounted) setState(() => _daily = s);
+  }
+
+  Future<void> _openDaily(List<Level> levels) async {
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      settings: const RouteSettings(name: '/daily'),
+      builder: (_) => DailyScreen(
+        ads: widget.ads,
+        pack: levels,
+        progress: widget.progress,
+        gameBuilder: widget.gameBuilder,
+        clock: widget.clock,
+        onRequestRewarded: _requestRewarded,
+      ),
+    ));
+    await _loadDaily();
+  }
+
+  int _classicBest = 0;
+
+  Future<void> _loadClassicBest() async {
+    final b = await ClassicStore().best();
+    if (mounted) setState(() => _classicBest = b);
+  }
+
+  /// Classic: endless game on the shared game screen (GameArgs.isClassic).
+  /// The best score is saved here (also on back/exit, from the classic save);
+  /// no interstitial (not a level).
+  Future<void> _openClassic() async {
+    final nav = Navigator.of(context);
+    while (mounted) {
+      final level = classicLevel(widget.clock().microsecondsSinceEpoch & 0x7fffffff);
+      final r = await nav.push(GameRoute(
+        levelId: level.id,
+        args: GameArgs(
+          level: level,
+          ads: widget.ads,
+          boosters: const {},
+          isClassic: true,
+          onRequestRewarded: _requestRewarded,
+        ),
+        builder: widget.gameBuilder,
+      ));
+      if (r != null) {
+        await ClassicStore().record(r.score);
+      } else {
+        // Back/exit mid-game: the score lives in the classic save; record it too.
+        final saved = await GameSaveStore.classic().load(level);
+        if (saved != null) await ClassicStore().record(saved.state.score);
+      }
+      if (r == null || !r.retry) break;
+    }
+    await _loadClassicBest();
+  }
+
+  void _openSettings() {
+    final settings = widget.settings ?? SettingsScope.read(context);
+    if (settings == null) return;
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      settings: const RouteSettings(name: '/settings'),
+      builder: (_) => SettingsScreen(settings: settings, ads: widget.ads),
+    ));
   }
 
   /// In-level rewarded (game lose overlay). True only after onUserEarnedReward.
@@ -142,7 +224,18 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(t.appTitle), centerTitle: true),
+      appBar: AppBar(
+        title: Text(t.appTitle),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            key: const Key('settingsButton'),
+            tooltip: t.settingsTitle,
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: _openSettings,
+          ),
+        ],
+      ),
       body: FutureBuilder<LevelPack>(
         future: _pack,
         builder: (context, snap) {
@@ -168,9 +261,10 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                       key: const Key('dailyEntry'),
                       icon: Icons.local_fire_department,
                       label: t.daily,
-                      sub: t.mapDailyStreak(0),
-                      onTap: () => ScaffoldMessenger.of(context)
-                          .showSnackBar(SnackBar(content: Text(t.comingSoon))),
+                      sub: dailyUnlocked(widget.progress.progress.stars.keys)
+                          ? t.mapDailyStreak(_daily?.streak(widget.clock()) ?? 0)
+                          : t.dailyLocked,
+                      onTap: () => _openDaily(levels),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -179,8 +273,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                       key: const Key('classicEntry'),
                       icon: Icons.grid_view_rounded,
                       label: t.classic,
-                      sub: t.mapClassicContinue,
-                      onTap: () => _play(levels, currentLevel),
+                      sub: t.mapClassicBest(_classicBest),
+                      onTap: _openClassic,
                     ),
                   ),
                 ]),

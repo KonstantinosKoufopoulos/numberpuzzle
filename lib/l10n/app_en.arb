@@ -11,13 +11,10 @@
       }
     }
   },
-  "goals": "Goals",
   "addNumbers": "Add numbers",
   "undo": "Undo",
   "win": "Level complete!",
-  "debugWin": "Win (debug)",
   "noAdAvailable": "No ad available right now",
-  "comingSoon": "Coming soon",
   "introStarsTitle": "Stars",
   "introStarsBody": "Clear the number on a star to collect it.",
   "introGrassTitle": "Grass",
@@ -36,7 +33,6 @@
       }
     }
   },
-  "mapClassicContinue": "Classic · Continue",
   "mapWorld": "World 1 · {total} levels · {done}/{total}",
   "@mapWorld": {
     "placeholders": {
@@ -94,16 +90,7 @@
   "winNext": "Next level",
   "winMap": "Map",
   "loseRetry": "Play again",
-  "loseReward": "Video: +1 Add numbers",
-  "debugLose": "Lose (debug)",
-  "debugBoosters": "Boosters used: {n}",
-  "@debugBoosters": {
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
+  "loseReward": "+1 Add numbers ▶",
   "goalPairsSame": "Clear {count} equal pairs",
   "@goalPairsSame": {
     "placeholders": {
@@ -318,5 +305,57 @@
   "tutSkip": "Skip",
   "loadingLevel": "Preparing the level…",
   "loadError": "We couldn't prepare this level. Please try again.",
-  "retry": "Retry"
+  "retry": "Retry",
+  "settingsTitle": "Settings",
+  "settingsLanguage": "Language",
+  "settingsTheme": "Theme",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "optionSystem": "System",
+  "languageGreek": "Ελληνικά",
+  "languageEnglish": "English",
+  "settingsSound": "Sound",
+  "settingsHaptics": "Haptics",
+  "settingsTutorial": "Tutorial",
+  "settingsTutorialReplay": "Replay",
+  "settingsTutorialDone": "The tutorial will play again on level 1.",
+  "settingsPrivacy": "Privacy & ads",
+  "dailyTitle": "Daily puzzle",
+  "dailyStreak": "♨ {n}-day streak",
+  "@dailyStreak": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyBest": "Best: {n}",
+  "@dailyBest": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyPlay": "Play today's",
+  "dailyLocked": "Unlocks at level 8",
+  "dailyDone": "Done for today ✓",
+  "dailyLegend": "Grey = completed · Dark = today",
+  "classicOver": "No more moves",
+  "classicScore": "Score {n}",
+  "mapClassicBest": "Best {n}",
+  "@classicScore": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "@mapClassicBest": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  }
 }

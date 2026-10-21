@@ -10,6 +10,11 @@ import 'level.dart';
 import 'moves.dart';
 import 'rules.dart' as rules;
 
+/// Classic scoring.
+const int kPairPoints = 10;
+const int kRowPoints = 50;
+const int kStageClearBonus = 200;
+
 enum GameStatus { playing, won, lost }
 
 class GameState {
@@ -20,12 +25,19 @@ class GameState {
     required this.addNumbersUsed,
     required this.boostersUsed,
     required this.moveCount,
+    this.endless = false,
+    this.score = 0,
     this.previous,
   }) : _progress = progress;
 
   /// Starting state for [board] with [goals].
-  factory GameState.start(Board board, List<Goal> goals, {int addNumbersLimit = kDefaultAddNumbersLimit}) =>
-      GameState._(
+  factory GameState.start(
+    Board board,
+    List<Goal> goals, {
+    int addNumbersLimit = kDefaultAddNumbersLimit,
+    bool endless = false,
+  }) => GameState._(
+        endless: endless,
         board: board,
         progress: GoalProgress(goals),
         addNumbersLimit: addNumbersLimit,
@@ -47,7 +59,11 @@ class GameState {
     required int addNumbersUsed,
     required int boostersUsed,
     int moveCount = 0,
+    bool endless = false,
+    int score = 0,
   }) => GameState._(
+    endless: endless,
+    score: score,
     board: board,
     progress: GoalProgress.withDone(goals, done),
     addNumbersLimit: addNumbersLimit,
@@ -65,7 +81,22 @@ class GameState {
     addNumbersUsed: addNumbersUsed,
     boostersUsed: boostersUsed,
     moveCount: moveCount,
+    endless: endless,
+    score: score,
     previous: previous,
+  );
+
+  /// Classic: the board was cleared; continue on [next] with the
+  /// "Add numbers" allowance refilled and [bonus] points. Not undoable.
+  GameState nextStage(Board next, {int bonus = kStageClearBonus}) => GameState._(
+    board: next,
+    progress: _progress.copy(),
+    addNumbersLimit: addNumbersLimit,
+    addNumbersUsed: 0,
+    boostersUsed: boostersUsed,
+    moveCount: moveCount + 1,
+    endless: endless,
+    score: score + bonus,
   );
 
   final Board board;
@@ -79,6 +110,13 @@ class GameState {
   final int moveCount;
   final GameState? previous;
 
+  /// Classic mode: no goals, never won; play until stuck.
+  final bool endless;
+
+  /// Classic score: [kPairPoints] per pair + [kRowPoints] per removed row.
+  /// Restored by undo.
+  final int score;
+
   /// Copy of the goal progress (state stays immutable).
   GoalProgress get progress => _progress.copy();
   List<Goal> get goals => _progress.goals;
@@ -87,14 +125,16 @@ class GameState {
   int get addNumbersLeft => addNumbersLimit - addNumbersUsed;
   bool get canAddNumbers => addNumbersLeft > 0 && board.cells.any((c) => c.value != null);
   bool get canUndo => previous != null;
-  bool get isWon => _progress.isComplete;
+  bool get isWon => !endless && _progress.isComplete;
 
   /// Lost: goals unmet, no valid pair and no "Add numbers" left.
   bool get isLost => !isWon && !canAddNumbers && rules.allValidPairs(board).isEmpty;
 
   GameStatus get status => isWon ? GameStatus.won : (isLost ? GameStatus.lost : GameStatus.playing);
 
-  GameState _next(Board b, GoalProgress p, {int adds = 0, int boosters = 0}) => GameState._(
+  GameState _next(Board b, GoalProgress p, {int adds = 0, int boosters = 0, int points = 0}) => GameState._(
+    endless: endless,
+    score: score + points,
     board: b,
     progress: p,
     addNumbersLimit: addNumbersLimit,
@@ -113,7 +153,7 @@ class GameState {
   GameState pair(int a, int b) {
     _requirePlaying();
     final r = rules.applyPair(board, a, b);
-    return _next(r.board, _progress.copy()..onPair(r));
+    return _next(r.board, _progress.copy()..onPair(r), points: kPairPoints + kRowPoints * r.rowsRemoved);
   }
 
   GameState addNumbers() {
@@ -158,6 +198,8 @@ class GameState {
       addNumbersUsed: p.addNumbersUsed,
       boostersUsed: boostersUsed,
       moveCount: p.moveCount,
+      endless: endless,
+      score: p.score,
       previous: p.previous,
     );
   }

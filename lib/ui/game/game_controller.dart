@@ -37,6 +37,8 @@ class GameController extends ChangeNotifier {
     required this.hints,
     Map<String, int> spent = const {},
     this.onBoosterSpent,
+    this.nextStageBoard,
+    this.seed,
     bool tutorialDone = true,
     this.clearDuration = Tk.clear,
   }) : _state = state,
@@ -50,6 +52,12 @@ class GameController extends ChangeNotifier {
 
   final Level level;
   final Board initialBoard;
+
+  /// Classic: deals the next board when the current one is cleared.
+  final Board Function(GameState cleared)? nextStageBoard;
+
+  /// Persisted with the save (classic: resume keeps the board sequence).
+  final int? seed;
 
   /// Inventory snapshot from GameArgs (already reflects earlier spends).
   final Map<String, int> _inventory;
@@ -303,6 +311,8 @@ class GameController extends ChangeNotifier {
   // ---- internals -----------------------------------------------------------
 
   void _commit(GameState next) {
+    final deal = nextStageBoard;
+    if (next.endless && deal != null && next.board.isCleared) next = next.nextStage(deal(next));
     _state = next;
     hintPair = tutorialStep > 0 ? hintPair : null;
     hintAdd = false;
@@ -343,7 +353,7 @@ class GameController extends ChangeNotifier {
 
   void _save() {
     if (status == GameStatus.won) return;
-    unawaited(store.save(SavedGame(levelId: level.id, initialBoard: initialBoard, state: _state, spent: spent)));
+    unawaited(store.save(SavedGame(levelId: level.id, initialBoard: initialBoard, state: _state, spent: spent, seed: seed)));
   }
 
   /// Give up / level over: forget the saved in-level state.

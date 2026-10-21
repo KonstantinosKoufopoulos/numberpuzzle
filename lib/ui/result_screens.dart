@@ -9,8 +9,11 @@ enum WinAction { next, map }
 /// Win screen (wireframe 09). Pops with [WinAction]. No ad is shown here;
 /// the interstitial hook runs only after the player taps Next.
 class WinScreen extends StatelessWidget {
-  const WinScreen({super.key, required this.levelId, required this.stars, required this.hasNext});
+  const WinScreen({super.key, required this.levelId, required this.stars, required this.hasNext, this.subtitle});
   final int levelId;
+
+  /// Replaces «Level N» (e.g. the daily puzzle).
+  final String? subtitle;
   final int stars;
   final bool hasNext;
 
@@ -33,7 +36,7 @@ class WinScreen extends StatelessWidget {
                 children: [
                   Text(t.winTitle, style: Theme.of(context).textTheme.displaySmall),
                   const SizedBox(height: 8),
-                  Text(t.level(levelId)),
+                  Text(subtitle ?? t.level(levelId)),
                   const SizedBox(height: 24),
                   Row(
                     key: const Key('winStars'),

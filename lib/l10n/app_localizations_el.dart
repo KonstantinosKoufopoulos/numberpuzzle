@@ -23,9 +23,6 @@ class AppLocalizationsEl extends AppLocalizations {
   }
 
   @override
-  String get goals => 'Στόχοι';
-
-  @override
   String get addNumbers => 'Πρόσθεσε αριθμούς';
 
   @override
@@ -35,13 +32,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get win => 'Ολοκληρώθηκε!';
 
   @override
-  String get debugWin => 'Νίκη (debug)';
-
-  @override
   String get noAdAvailable => 'Δεν υπάρχει διαθέσιμη διαφήμιση τώρα';
-
-  @override
-  String get comingSoon => 'Έρχεται σύντομα';
 
   @override
   String get introStarsTitle => 'Αστέρια';
@@ -82,9 +73,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String mapDailyStreak(int n) {
     return 'Ημερήσιο · Σερί $n ημέρες';
   }
-
-  @override
-  String get mapClassicContinue => 'Κλασικό · Συνέχεια';
 
   @override
   String mapWorld(int total, int done) {
@@ -158,15 +146,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get loseRetry => 'Ξαναπαίξε';
 
   @override
-  String get loseReward => 'Βίντεο: +1 Προσθήκη αριθμών';
-
-  @override
-  String get debugLose => 'Ήττα (debug)';
-
-  @override
-  String debugBoosters(int n) {
-    return 'Εργαλεία: $n';
-  }
+  String get loseReward => '+1 Πρόσθεσε αριθμούς ▶';
 
   @override
   String goalPairsSame(int count) {
@@ -319,4 +299,85 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get retry => 'Ξανά';
+
+  @override
+  String get settingsTitle => 'Ρυθμίσεις';
+
+  @override
+  String get settingsLanguage => 'Γλώσσα';
+
+  @override
+  String get settingsTheme => 'Θέμα';
+
+  @override
+  String get themeLight => 'Φωτεινό';
+
+  @override
+  String get themeDark => 'Σκοτεινό';
+
+  @override
+  String get optionSystem => 'Σύστημα';
+
+  @override
+  String get languageGreek => 'Ελληνικά';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get settingsSound => 'Ήχος';
+
+  @override
+  String get settingsHaptics => 'Δόνηση';
+
+  @override
+  String get settingsTutorial => 'Οδηγός (tutorial)';
+
+  @override
+  String get settingsTutorialReplay => 'Επανάληψη';
+
+  @override
+  String get settingsTutorialDone =>
+      'Ο οδηγός θα εμφανιστεί ξανά στο επίπεδο 1.';
+
+  @override
+  String get settingsPrivacy => 'Απόρρητο και διαφημίσεις';
+
+  @override
+  String get dailyTitle => 'Ημερήσιο παζλ';
+
+  @override
+  String dailyStreak(int n) {
+    return '♨ $n ημέρες σερί';
+  }
+
+  @override
+  String dailyBest(int n) {
+    return 'Καλύτερο: $n';
+  }
+
+  @override
+  String get dailyPlay => 'Παίξε το σημερινό';
+
+  @override
+  String get dailyLocked => 'Ξεκλειδώνει στο level 8';
+
+  @override
+  String get dailyDone => 'Ολοκληρώθηκε για σήμερα ✓';
+
+  @override
+  String get dailyLegend => 'Γκρι = ολοκληρώθηκε · Μαύρο = σήμερα';
+
+  @override
+  String get classicOver => 'Τέλος κινήσεων';
+
+  @override
+  String classicScore(int n) {
+    return 'Σκορ $n';
+  }
+
+  @override
+  String mapClassicBest(int n) {
+    return 'Ρεκόρ $n';
+  }
 }

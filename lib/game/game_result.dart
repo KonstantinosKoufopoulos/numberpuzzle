@@ -18,6 +18,7 @@ class GameResult {
     required this.starsEarned,
     this.boostersSpent = const {},
     this.retry = false,
+    this.score = 0,
   });
 
   /// A win; stars come from [starsForWin] (Add numbers / undo never count).
@@ -40,9 +41,11 @@ class GameResult {
     int boostersUsed = 0,
     Map<String, int> boostersSpent = const {},
     bool retry = false,
+    int score = 0,
   }) =>
       GameResult(
         retry: retry,
+        score: score,
         levelId: levelId,
         won: false,
         boostersUsed: boostersUsed,
@@ -67,6 +70,9 @@ class GameResult {
   /// lose overlay. The shell restarts the level or returns to the map.
   final bool retry;
 
+  /// Classic only: final score of the game (0 otherwise).
+  final int score;
+
   @override
   String toString() =>
       'GameResult(levelId: $levelId, won: $won, boostersUsed: $boostersUsed, stars: $starsEarned)';
@@ -80,6 +86,7 @@ class GameArgs {
     required this.ads,
     required this.boosters,
     this.isDaily = false,
+    this.isClassic = false,
     this.onRequestRewarded,
     this.onBoosterSpent,
   });
@@ -90,6 +97,10 @@ class GameArgs {
   /// Booster inventory at level start (read-only snapshot).
   final Map<String, int> boosters;
   final bool isDaily;
+
+  /// Mode flag: endless classic game (no goals, score, never won). The game
+  /// ends on lose only; [GameResult.score] carries the score.
+  final bool isClassic;
 
   /// In-level rewarded request (game lose overlay "+1 Add numbers ▶").
   /// Resolves true only after the SDK reported the reward; null/false = no ad.
