@@ -45,9 +45,16 @@ Future<_Harness> _pump(
   Future<bool> Function()? rewarded,
   Hint hint = const Hint.none(),
   _Boards? boards,
+  Future<void> Function(String id)? onSpent,
 }) async {
   final h = _Harness();
-  final args = GameArgs(level: level, ads: AdService.disabled(), boosters: boosters, onRequestRewarded: rewarded);
+  final args = GameArgs(
+    level: level,
+    ads: AdService.disabled(),
+    boosters: boosters,
+    onRequestRewarded: rewarded,
+    onBoosterSpent: onSpent,
+  );
   await tester.pumpWidget(
     MaterialApp(
       theme: lightTheme,
@@ -230,7 +237,7 @@ void main() {
     expect(h.result!.boostersUsed, 0);
   });
 
-  testWidgets('lose overlay: no ad text, rewarded +1 continues the same board, give up pops lose', (tester) async {
+  testWidgets('lose overlay: no ad text, rewarded +1 continues the same board', (tester) async {
     var answer = false;
     final h = await _pump(
       tester,
@@ -261,19 +268,101 @@ void main() {
     expect(find.descendant(of: find.byKey(const Key('board')), matching: find.text('1')), findsNWidgets(2));
   });
 
-  testWidgets('give up pops GameResult.lose', (tester) async {
-    final h = await _pump(
+  for (final retry in [true, false]) {
+    testWidgets('lose overlay ${retry ? 'Retry' : 'Map'} pops GameResult.lose(retry: $retry)', (tester) async {
+      final h = await _pump(
+        tester,
+        level: _level(const [Goal(GoalType.pairsTen, 1)], add: 0),
+        board: Board.fromRows([
+          [1, 2, 4],
+          [3, 0, 5],
+        ]),
+      );
+      await tester.tap(find.byKey(Key(retry ? 'lose-retry' : 'lose-map')));
+      await tester.pumpAndSettle();
+      expect(h.result!.won, isFalse);
+      expect(h.result!.retry, retry);
+      expect(h.result!.starsEarned, 0);
+    });
+  }
+
+  testWidgets('no-ad text in the overlay auto-hides and hides on next action', (tester) async {
+    await _pump(
       tester,
       level: _level(const [Goal(GoalType.pairsTen, 1)], add: 0),
       board: Board.fromRows([
         [1, 2, 4],
         [3, 0, 5],
       ]),
+      rewarded: () async => false,
     );
-    await tester.tap(find.byKey(const Key('lose-give-up')));
+    await tester.tap(find.byKey(const Key('lose-reward')));
+    await tester.pump();
+    expect(find.byKey(const Key('lose-no-ad')), findsOneWidget);
+    await tester.pump(kNoAdMessageDuration);
+    expect(find.byKey(const Key('lose-no-ad')), findsNothing);
+    await tester.tap(find.byKey(const Key('lose-reward')));
+    await tester.pump();
+    expect(find.byKey(const Key('lose-no-ad')), findsOneWidget);
+    // Next action (another reward attempt) clears it first, then re-shows.
+    await tester.pump(kNoAdMessageDuration - const Duration(seconds: 1));
+    await tester.tap(find.byKey(const Key('lose-reward')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    expect(find.byKey(const Key('lose-no-ad')), findsOneWidget, reason: 'timer restarted');
+    await tester.pump(kNoAdMessageDuration);
+    expect(find.byKey(const Key('lose-no-ad')), findsNothing);
+  });
+
+  testWidgets('booster ▶ no-ad snackbar hides on the next board tap and on its own', (tester) async {
+    await _pump(
+      tester,
+      level: _level(const [Goal(GoalType.pairsTen, 2)]),
+      board: Board.fromRows([
+        [1, 9, 5],
+        [2, 3, 8],
+      ]),
+    );
+    await tester.tap(find.byKey(const Key('booster-swap')));
+    await tester.pump();
+    expect(find.text('No ad available right now'), findsOneWidget);
+    await tester.tap(_cell(0));
     await tester.pumpAndSettle();
-    expect(h.result!.won, isFalse);
-    expect(h.result!.starsEarned, 0);
+    expect(find.text('No ad available right now'), findsNothing);
+    await tester.tap(find.byKey(const Key('booster-hammer')));
+    await tester.pump();
+    expect(find.text('No ad available right now'), findsOneWidget);
+    await tester.pumpAndSettle(); // entrance animation, then the timer starts
+    await tester.pump(kNoAdMessageDuration);
+    await tester.pumpAndSettle();
+    expect(find.text('No ad available right now'), findsNothing);
+  });
+
+  testWidgets('spent boosters are reported immediately and not re-subtracted on resume', (tester) async {
+    final spentCalls = <String>[];
+    final level = _level(const [Goal(GoalType.pairsTen, 2)]);
+    await _pump(
+      tester,
+      level: level,
+      board: Board.fromRows([
+        [1, 9, 5],
+        [2, 3, 8],
+      ]),
+      boosters: const {'hammer': 2, 'swap': 0, 'hint': 0},
+      onSpent: (id) async => spentCalls.add(id),
+    );
+    await tester.tap(find.byKey(const Key('booster-hammer')));
+    await tester.pump();
+    await tester.tap(_cell(2));
+    await tester.pumpAndSettle();
+    expect(spentCalls, ['hammer']);
+    Finder badge(String t) =>
+        find.descendant(of: find.byKey(const Key('booster-hammer-badge')), matching: find.text(t));
+    expect(badge('1'), findsOneWidget);
+    // Resume with the shell's already-deducted inventory (1): still shows 1.
+    await tester.pumpWidget(const SizedBox());
+    await _pump(tester, level: level, boards: _Boards(null), boosters: const {'hammer': 1, 'swap': 0, 'hint': 0});
+    expect(badge('1'), findsOneWidget);
   });
 
   testWidgets('save/resume restores the in-level state without regenerating', (tester) async {

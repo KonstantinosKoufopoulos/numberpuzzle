@@ -17,6 +17,7 @@ class GameResult {
     required this.boostersUsed,
     required this.starsEarned,
     this.boostersSpent = const {},
+    this.retry = false,
   });
 
   /// A win; stars come from [starsForWin] (Add numbers / undo never count).
@@ -38,8 +39,10 @@ class GameResult {
     required int levelId,
     int boostersUsed = 0,
     Map<String, int> boostersSpent = const {},
+    bool retry = false,
   }) =>
       GameResult(
+        retry: retry,
         levelId: levelId,
         won: false,
         boostersUsed: boostersUsed,
@@ -60,6 +63,10 @@ class GameResult {
   /// inventory. Sum should equal [boostersUsed].
   final Map<String, int> boostersSpent;
 
+  /// Lose only: the player chose Retry (true) or Map (false) on the game's
+  /// lose overlay. The shell restarts the level or returns to the map.
+  final bool retry;
+
   @override
   String toString() =>
       'GameResult(levelId: $levelId, won: $won, boostersUsed: $boostersUsed, stars: $starsEarned)';
@@ -74,6 +81,7 @@ class GameArgs {
     required this.boosters,
     this.isDaily = false,
     this.onRequestRewarded,
+    this.onBoosterSpent,
   });
 
   final Level level;
@@ -86,6 +94,11 @@ class GameArgs {
   /// In-level rewarded request (game lose overlay "+1 Add numbers ▶").
   /// Resolves true only after the SDK reported the reward; null/false = no ad.
   final Future<bool> Function()? onRequestRewarded;
+
+  /// Called the moment a booster ('hammer'/'swap'/'hint') is taken from the
+  /// inventory; the shell persists the decrement immediately. [boosters] is
+  /// the snapshot at level start.
+  final Future<void> Function(String boosterId)? onBoosterSpent;
 }
 
 /// Builds the game screen. The screen must `Navigator.pop(context, GameResult)`

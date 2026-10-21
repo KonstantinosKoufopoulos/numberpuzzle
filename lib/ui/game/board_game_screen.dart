@@ -21,6 +21,9 @@ import 'game_controller.dart';
 /// `win` as soon as all goals are met, `lose` only when the player gives up
 /// on the lose overlay. Back button = abandoned (null); the in-level state
 /// stays saved for resume.
+/// How long the «no ad available» message stays up (also hidden on the next action).
+const Duration kNoAdMessageDuration = Duration(seconds: 3);
+
 class BoardGameScreen extends StatefulWidget {
   const BoardGameScreen({
     super.key,
@@ -53,6 +56,7 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
   bool _error = false;
   bool _popped = false;
   bool _noAd = false;
+  Timer? _noAdTimer;
   bool _rewardBusy = false;
 
   @override
@@ -89,6 +93,7 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
     state: s,
     boosters: widget.args.boosters,
     spent: spent,
+    onBoosterSpent: widget.args.onBoosterSpent,
     tutorialDone: tutorialDone,
     store: _saves,
     hints: widget.hints,
@@ -112,6 +117,7 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
 
   @override
   void dispose() {
+    _noAdTimer?.cancel();
     _c?.dispose();
     super.dispose();
   }
@@ -120,14 +126,22 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
     final t = AppLocalizations.of(context);
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(t.noAdAvailable)));
+      ..showSnackBar(SnackBar(content: Text(t.noAdAvailable), duration: kNoAdMessageDuration));
+  }
+
+  void _hideMessages() {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    _noAdTimer?.cancel();
+    if (_noAd) setState(() => _noAd = false);
   }
 
   Future<void> _tool(ToolMode m) async {
+    _hideMessages();
     if (_c!.toggleTool(m) == BoosterTap.noStock) _noAdSnack();
   }
 
   Future<void> _hint() async {
+    _hideMessages();
     final t = AppLocalizations.of(context);
     final r = await _c!.useHint();
     if (!mounted) return;
@@ -166,6 +180,7 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
 
   Future<void> _reward() async {
     final cb = widget.args.onRequestRewarded;
+    _hideMessages();
     setState(() => _rewardBusy = true);
     final ok = cb == null ? false : await cb().catchError((Object _) => false);
     if (!mounted) return;
@@ -173,17 +188,24 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
       _rewardBusy = false;
       _noAd = !ok;
     });
+    if (!ok) _noAdTimer = Timer(kNoAdMessageDuration, () => mounted ? setState(() => _noAd = false) : null);
     if (ok) _c!.continueWithExtraAddNumbers();
   }
 
-  Future<void> _giveUp() async {
+  Future<void> _exit({required bool retry}) async {
+    _hideMessages();
     final c = _c!;
     await c.clearSave();
     if (!mounted || _popped) return;
     _popped = true;
-    Navigator.of(
-      context,
-    ).pop(GameResult.lose(levelId: c.level.id, boostersUsed: c.state.boostersUsed, boostersSpent: Map.of(c.spent)));
+    Navigator.of(context).pop(
+      GameResult.lose(
+        levelId: c.level.id,
+        boostersUsed: c.state.boostersUsed,
+        boostersSpent: Map.of(c.spent),
+        retry: retry,
+      ),
+    );
   }
 
   @override
@@ -239,7 +261,10 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
           if (c.hintBusy) Padding(padding: const EdgeInsets.all(Tk.xs), child: Text(t.hintSearching)),
           const SizedBox(height: Tk.s),
           Expanded(
-            child: SingleChildScrollView(child: BoardView(controller: c)),
+            child: Listener(
+              onPointerDown: (_) => _hideMessages(),
+              child: SingleChildScrollView(child: BoardView(controller: c)),
+            ),
           ),
           const SizedBox(height: Tk.s),
           _addButton(t, c, theme),
@@ -403,11 +428,13 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
                     width: double.infinity,
                     height: Tk.button,
                     child: OutlinedButton(
-                      key: const Key('lose-give-up'),
-                      onPressed: _giveUp,
-                      child: Text(t.loseGiveUp),
+                      key: const Key('lose-retry'),
+                      onPressed: () => _exit(retry: true),
+                      child: Text(t.loseRetry),
                     ),
                   ),
+                  const SizedBox(height: Tk.s),
+                  TextButton(key: const Key('lose-map'), onPressed: () => _exit(retry: false), child: Text(t.winMap)),
                 ],
               ),
             ),

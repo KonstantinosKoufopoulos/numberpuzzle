@@ -36,6 +36,7 @@ class GameController extends ChangeNotifier {
     required this.store,
     required this.hints,
     Map<String, int> spent = const {},
+    this.onBoosterSpent,
     bool tutorialDone = true,
     this.clearDuration = Tk.clear,
   }) : _state = state,
@@ -50,7 +51,7 @@ class GameController extends ChangeNotifier {
   final Level level;
   final Board initialBoard;
 
-  /// Inventory snapshot from GameArgs; [boosterCount] subtracts [spent].
+  /// Inventory snapshot from GameArgs (already reflects earlier spends).
   final Map<String, int> _inventory;
 
   /// Boosters consumed from the inventory in this level (GameResult.boostersSpent).
@@ -90,11 +91,22 @@ class GameController extends ChangeNotifier {
 
   GameStatus get status => _state.status;
   bool get busy => clearing != null;
-  int boosterCount(String id) => (_inventory[id] ?? 0) - (spent[id] ?? 0);
+
+  /// Persists an inventory decrement immediately (shell callback).
+  final Future<void> Function(String id)? onBoosterSpent;
+
+  /// Spent since this screen opened. [_inventory] is the already-persisted
+  /// count at open time, so a resumed level doesn't subtract [spent] again.
+  final Map<String, int> _sessionSpent = {};
+
+  int boosterCount(String id) => (_inventory[id] ?? 0) - (_sessionSpent[id] ?? 0);
 
   bool _consume(String id) {
     if (boosterCount(id) <= 0) return false;
     spent[id] = (spent[id] ?? 0) + 1;
+    _sessionSpent[id] = (_sessionSpent[id] ?? 0) + 1;
+    final cb = onBoosterSpent;
+    if (cb != null) unawaited(cb(id));
     return true;
   }
 

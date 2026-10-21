@@ -146,23 +146,11 @@ abstract class AppLocalizations {
   /// **'Level complete!'**
   String get win;
 
-  /// No description provided for @continueLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Continue'**
-  String get continueLabel;
-
   /// No description provided for @debugWin.
   ///
   /// In en, this message translates to:
   /// **'Win (debug)'**
   String get debugWin;
-
-  /// No description provided for @watchAdReward.
-  ///
-  /// In en, this message translates to:
-  /// **'Watch ad for a booster'**
-  String get watchAdReward;
 
   /// No description provided for @noAdAvailable.
   ///
@@ -235,12 +223,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Slime disappears when every cell around it is empty.'**
   String get introSlimeBody;
-
-  /// No description provided for @gotIt.
-  ///
-  /// In en, this message translates to:
-  /// **'Got it'**
-  String get gotIt;
 
   /// No description provided for @mapDailyStreak.
   ///
@@ -373,12 +355,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Out of moves'**
   String get loseTitle;
-
-  /// No description provided for @loseBody.
-  ///
-  /// In en, this message translates to:
-  /// **'No pairs left and no Add numbers. Try again — your logic counts, not luck.'**
-  String get loseBody;
 
   /// No description provided for @loseRetry.
   ///
@@ -565,12 +541,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No pairs left'**
   String get stuckTitle;
-
-  /// No description provided for @loseGiveUp.
-  ///
-  /// In en, this message translates to:
-  /// **'Give up'**
-  String get loseGiveUp;
 
   /// No description provided for @tutStep.
   ///

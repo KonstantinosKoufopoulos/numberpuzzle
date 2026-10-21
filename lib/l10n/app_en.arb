@@ -15,9 +15,7 @@
   "addNumbers": "Add numbers",
   "undo": "Undo",
   "win": "Level complete!",
-  "continueLabel": "Continue",
   "debugWin": "Win (debug)",
-  "watchAdReward": "Watch ad for a booster",
   "noAdAvailable": "No ad available right now",
   "comingSoon": "Coming soon",
   "introStarsTitle": "Stars",
@@ -30,7 +28,6 @@
   "introIceBody": "Frozen numbers can't be selected. Clear a neighbour to crack the ice.",
   "introSlimeTitle": "Slime",
   "introSlimeBody": "Slime disappears when every cell around it is empty.",
-  "gotIt": "Got it",
   "mapDailyStreak": "Daily · {n}-day streak",
   "@mapDailyStreak": {
     "placeholders": {
@@ -97,7 +94,6 @@
   "winNext": "Next level",
   "winMap": "Map",
   "loseTitle": "Out of moves",
-  "loseBody": "No pairs left and no Add numbers. Try again — your logic counts, not luck.",
   "loseRetry": "Play again",
   "loseReward": "Video: +1 Add numbers",
   "debugLose": "Lose (debug)",
@@ -288,7 +284,6 @@
   "hintSearching": "Looking for a pair…",
   "hintAddNumbers": "No pairs left: use Add numbers.",
   "stuckTitle": "No pairs left",
-  "loseGiveUp": "Give up",
   "tutStep": "Step {i} of 3",
   "@tutStep": {
     "placeholders": {

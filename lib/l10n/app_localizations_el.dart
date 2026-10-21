@@ -35,13 +35,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get win => 'Ολοκληρώθηκε!';
 
   @override
-  String get continueLabel => 'Συνέχεια';
-
-  @override
   String get debugWin => 'Νίκη (debug)';
-
-  @override
-  String get watchAdReward => 'Δες διαφήμιση για βοήθεια';
 
   @override
   String get noAdAvailable => 'Δεν υπάρχει διαθέσιμη διαφήμιση τώρα';
@@ -83,9 +77,6 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get introSlimeBody =>
       'Η γλίτσα εξαφανίζεται όταν όλα τα γύρω κελιά είναι άδεια.';
-
-  @override
-  String get gotIt => 'Εντάξει';
 
   @override
   String mapDailyStreak(int n) {
@@ -165,10 +156,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get loseTitle => 'Τέλος κινήσεων';
-
-  @override
-  String get loseBody =>
-      'Δεν υπάρχουν ζευγάρια και οι Προσθήκες τελείωσαν. Δοκίμασε ξανά — η λογική σου μετράει, όχι η τύχη.';
 
   @override
   String get loseRetry => 'Ξαναπαίξε';
@@ -299,9 +286,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get stuckTitle => 'Δεν υπάρχουν ζευγάρια';
-
-  @override
-  String get loseGiveUp => 'Τα παρατάω';
 
   @override
   String tutStep(int i) {

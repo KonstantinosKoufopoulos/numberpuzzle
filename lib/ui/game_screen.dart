@@ -59,6 +59,12 @@ class _StubGameScreenState extends State<StubGameScreen> {
             onPressed: () => Navigator.pop(context, GameResult.lose(levelId: l.id, boostersUsed: _boosters)),
             child: Text(t.debugLose),
           ),
+          TextButton(
+            key: const Key('debugLoseRetry'),
+            onPressed: () =>
+                Navigator.pop(context, GameResult.lose(levelId: l.id, boostersUsed: _boosters, retry: true)),
+            child: Text(t.loseRetry),
+          ),
         ],
       ),
     );

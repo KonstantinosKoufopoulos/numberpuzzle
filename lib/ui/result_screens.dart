@@ -5,7 +5,6 @@ import 'theme.dart';
 
 enum WinAction { next, map }
 
-enum LoseAction { retry, map }
 
 /// Win screen (wireframe 09). Pops with [WinAction]. No ad is shown here;
 /// the interstitial hook runs only after the player taps Next.
@@ -65,57 +64,6 @@ class WinScreen extends StatelessWidget {
                       onPressed: () => Navigator.pop(context, WinAction.map),
                       child: Text(t.winMap),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Lose screen (wireframe 13), shown after the player exits the game's lose
-/// overlay. Pops with [LoseAction]. The rewarded continue lives only in the
-/// game screen's lose overlay (docs/m2-seam.md).
-class LoseScreen extends StatelessWidget {
-  const LoseScreen({super.key, required this.levelId});
-  final int levelId;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context);
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (did, _) {
-        if (!did) Navigator.pop(context, LoseAction.map);
-      },
-      child: Scaffold(
-        body: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(t.loseTitle, style: Theme.of(context).textTheme.displaySmall),
-                  const SizedBox(height: 12),
-                  Text(t.loseBody, textAlign: TextAlign.center),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      key: const Key('loseRetry'),
-                      onPressed: () => Navigator.pop(context, LoseAction.retry),
-                      child: Text(t.loseRetry),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextButton(
-                    key: const Key('loseMap'),
-                    onPressed: () => Navigator.pop(context, LoseAction.map),
-                    child: Text(t.winMap),
                   ),
                 ],
               ),

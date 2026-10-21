@@ -111,12 +111,12 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
         ads: widget.ads,
         boosters: Map.unmodifiable(pc.progress.boosters),
         onRequestRewarded: _requestRewarded,
+        onBoosterSpent: (id) => pc.spendBoosters({id: 1}),
       ),
       builder: widget.gameBuilder,
     ));
     if (result == null || !mounted) return; // abandoned
-    if (result.boostersSpent.isNotEmpty) await pc.spendBoosters(result.boostersSpent);
-    if (!mounted) return;
+    // Boosters were already deducted via onBoosterSpent (not again here).
 
     final idx = levels.indexWhere((l) => l.id == level.id);
     final next = idx >= 0 && idx + 1 < levels.length ? levels[idx + 1] : null;
@@ -135,18 +135,9 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
         await widget.ads.maybeShowInterstitial(levelId: level.id, isDaily: false);
         if (mounted) await _play(levels, next);
       }
-    } else {
-      final action = await Navigator.of(context).push(MaterialPageRoute<LoseAction>(
-        settings: const RouteSettings(name: '/lose'),
-        builder: (_) => LoseScreen(levelId: level.id),
-      ));
-      if (!mounted) return;
-      switch (action) {
-        case LoseAction.retry:
-          await _play(levels, level, skipStart: true);
-        case LoseAction.map || null:
-          break;
-      }
+    } else if (result.retry) {
+      // Lose overlay (in the game screen) chose Retry; Map = just return.
+      await _play(levels, level, skipStart: true);
     }
   }
 

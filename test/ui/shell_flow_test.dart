@@ -46,7 +46,7 @@ class FakeAds extends AdService {
 }
 
 Future<ProgressController> pumpApp(WidgetTester tester, AdService ads,
-    {Map<String, Object> prefs = const {}, String locale = 'en'}) async {
+    {Map<String, Object> prefs = const {}, String locale = 'en', GameScreenBuilder? game}) async {
   tester.view.physicalSize = const Size(1080, 2340);
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
@@ -55,7 +55,7 @@ Future<ProgressController> pumpApp(WidgetTester tester, AdService ads,
   SharedPreferences.setMockInitialValues(prefs);
   final pc = ProgressController(ProgressStore());
   await tester.runAsync(pc.load);
-  await tester.pumpWidget(NumberPuzzleApp(ads: ads, progress: pc, levels: FileLevels(), gameBuilder: StubGameScreen.builder));
+  await tester.pumpWidget(NumberPuzzleApp(ads: ads, progress: pc, levels: FileLevels(), gameBuilder: game ?? StubGameScreen.builder));
   await settleMap(tester);
   return pc;
 }
@@ -140,30 +140,45 @@ void main() {
     expect(find.text('Level 2'), findsWidgets);
   });
 
-  testWidgets('lose → retry restarts; map returns', (tester) async {
+  testWidgets('lose: Retry from the game overlay restarts (no shell lose screen); Map returns', (tester) async {
     final pc = await pumpApp(tester, FakeAds(rewarded: FakeRewarded(loaded: false)), locale: 'el');
     await startLevel(tester);
+    await tester.tap(find.byKey(const Key('debugLoseRetry')));
+    await tester.pumpAndSettle();
+    expect(find.text('Τέλος κινήσεων'), findsNothing);
+    expect(find.byKey(const Key('debugWin')), findsOneWidget, reason: 'restarted directly, no start sheet');
     await tester.tap(find.byKey(const Key('debugLose')));
-    await tester.pumpAndSettle();
-    expect(find.text('Τέλος κινήσεων'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('loseRetry')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('debugWin')), findsOneWidget);
-    await tester.tap(find.byKey(const Key('debugLose')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('loseMap')));
     await tester.pumpAndSettle();
     expect(find.text('Παίξε 1'), findsOneWidget);
     expect(pc.progress.stars, isEmpty);
   });
 
-  testWidgets('shell lose screen has no rewarded button (continue lives in the game overlay)', (tester) async {
-    await pumpApp(tester, FakeAds(rewarded: FakeRewarded()));
+  testWidgets('boosters are deducted when spent (onBoosterSpent), not again on the result', (tester) async {
+    GameArgs? args;
+    final pc = await pumpApp(
+      tester,
+      FakeAds(),
+      prefs: {ProgressStore.key: '{"v":2,"stars":{},"unlocked":1,"seenIntros":[],"boosters":{"hint":3}}'},
+      game: (c, a) {
+        args = a;
+        return StubGameScreen.builder(c, a);
+      },
+    );
     await startLevel(tester);
-    await tester.tap(find.byKey(const Key('debugLose')));
+    expect(args!.boosters['hint'], 3);
+    await tester.runAsync(() => args!.onBoosterSpent!('hint'));
+    expect(pc.progress.boosters['hint'], 2, reason: 'persisted immediately');
+    // Abandon (back) keeps the deduction.
+    Navigator.of(tester.element(find.byKey(const Key('debugWin')))).pop();
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('loseRetry')), findsOneWidget);
-    expect(find.byKey(const Key('loseReward')), findsNothing);
+    expect(pc.progress.boosters['hint'], 2);
+    await startLevel(tester);
+    expect(args!.boosters['hint'], 2);
+    Navigator.of(tester.element(find.byKey(const Key('debugWin'))))
+        .pop(GameResult.win(levelId: 1, boostersUsed: 1, boostersSpent: const {'hint': 1}));
+    await tester.pumpAndSettle();
+    expect(pc.progress.boosters['hint'], 2, reason: 'no double deduction');
+    expect(pc.progress.stars[1], 2);
   });
 
   testWidgets('onRequestRewarded resolves true only when the reward callback fires', (tester) async {

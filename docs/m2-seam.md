@@ -14,7 +14,7 @@ class GameResult {
   factory GameResult.win({required int levelId, required int boostersUsed,
       Map<String, int> boostersSpent = const {}}); // stars = starsForWin(boostersUsed)
   factory GameResult.lose({required int levelId, int boostersUsed = 0,
-      Map<String, int> boostersSpent = const {}}); // stars = 0
+      Map<String, int> boostersSpent = const {}, bool retry = false}); // stars = 0
 }
 
 class GameArgs {
@@ -23,6 +23,7 @@ class GameArgs {
   final Map<String, int> boosters;   // inventory snapshot: 'hammer','swap','hint'
   final bool isDaily;                // always false in M2
   final Future<bool> Function()? onRequestRewarded; // in-game lose overlay continue
+  final Future<void> Function(String boosterId)? onBoosterSpent; // persist -1 at spend time
 }
 
 typedef GameScreenBuilder = Widget Function(BuildContext context, GameArgs args);
@@ -41,8 +42,10 @@ class GameRoute extends MaterialPageRoute<GameResult> {
    Popping with `null` (back button) = abandoned; nothing is recorded.
 3. `boostersUsed` counts hammer/swap/hint uses only. Add numbers and undo
    NEVER count (`starsForWin` in `engine/scoring.dart`: 0→3★, 1→2★, 2+→1★).
-4. Report per-booster uses in `boostersSpent` (e.g. `{'hammer': 1}`); the
-   shell decrements the persisted inventory. Boosters earned in-level from a
+4. Call `onBoosterSpent(id)` the moment a booster leaves the inventory; the
+   shell persists the decrement immediately (abandoning a level never refunds).
+   `boostersSpent` in the result is informational only; the shell does NOT
+   deduct it again. Boosters earned in-level from a
    rewarded ad: grant AND spend inside the level (don't add to `boostersSpent`
    unless it came from inventory) – or ask the shell owner for a callback.
 5. Never show an interstitial. The shell calls
@@ -68,9 +71,9 @@ map node / Play N → level-start sheet (goals, star rule, Start) → gift card
 card (first time `introduces` is seen; key `intro:<id>`) → `GameRoute` →
 - won: save best stars + unlock next → WinScreen → Next ⇒ interstitial hook →
   next level's start sheet; Map ⇒ map.
-- lost (player exited the game's lose overlay): LoseScreen → Play again
-  (restarts, no start sheet) / Map. The rewarded +1 Add numbers continue
-  lives only in the game's lose overlay (see Continue flow).
+- lost: no shell lose screen. The game's lose overlay offers «+1 Add
+  numbers ▶» / Retry / Map; `GameResult.lose(retry: true)` ⇒ restart (no
+  start sheet), `retry: false` ⇒ map.
 
 ## Progress (lib/storage/progress_store.dart)
 

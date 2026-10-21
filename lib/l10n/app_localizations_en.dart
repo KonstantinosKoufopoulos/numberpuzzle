@@ -35,13 +35,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get win => 'Level complete!';
 
   @override
-  String get continueLabel => 'Continue';
-
-  @override
   String get debugWin => 'Win (debug)';
-
-  @override
-  String get watchAdReward => 'Watch ad for a booster';
 
   @override
   String get noAdAvailable => 'No ad available right now';
@@ -81,9 +75,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get introSlimeBody =>
       'Slime disappears when every cell around it is empty.';
-
-  @override
-  String get gotIt => 'Got it';
 
   @override
   String mapDailyStreak(int n) {
@@ -162,10 +153,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loseTitle => 'Out of moves';
-
-  @override
-  String get loseBody =>
-      'No pairs left and no Add numbers. Try again — your logic counts, not luck.';
 
   @override
   String get loseRetry => 'Play again';
@@ -295,9 +282,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get stuckTitle => 'No pairs left';
-
-  @override
-  String get loseGiveUp => 'Give up';
 
   @override
   String tutStep(int i) {
