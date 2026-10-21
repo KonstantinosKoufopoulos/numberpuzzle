@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:numberpuzzle/ads/ad_service.dart';
+import 'package:numberpuzzle/classic/classic.dart';
 import 'package:numberpuzzle/engine/board.dart';
+import 'package:numberpuzzle/engine/game.dart';
 import 'package:numberpuzzle/engine/cell.dart';
 import 'package:numberpuzzle/engine/goals.dart';
 import 'package:numberpuzzle/engine/hint.dart';
@@ -48,6 +50,7 @@ Future<_Harness> _pump(
   Hint hint = const Hint.none(),
   _Boards? boards,
   Future<void> Function(String id)? onSpent,
+  bool classic = false,
 }) async {
   final h = _Harness();
   final args = GameArgs(
@@ -56,6 +59,7 @@ Future<_Harness> _pump(
     boosters: boosters,
     onRequestRewarded: rewarded,
     onBoosterSpent: onSpent,
+    isClassic: classic,
   );
   await tester.pumpWidget(
     MaterialApp(
@@ -528,5 +532,88 @@ void main() {
     expect(find.text('★'), findsOneWidget);
     expect(_chip(tester, 0), '★ 0/1');
     expect(tester.takeException(), isNull);
+  });
+
+  group('classic', () {
+    Future<void> saveClassic(List<List<int?>> rows, {int used = 0, int score = 0}) async {
+      final b = Board.fromRows(rows);
+      final st = GameState.restore(
+        board: b,
+        goals: const [],
+        done: const [],
+        addNumbersLimit: 5,
+        addNumbersUsed: used,
+        boostersUsed: 0,
+        endless: true,
+        score: score,
+      );
+      await GameSaveStore.classic().save(SavedGame(levelId: kClassicLevelId, initialBoard: b, state: st));
+    }
+
+    testWidgets('fresh game: 9 columns, score HUD, only undo, no goal chips; never wins', (tester) async {
+      final boards = _Boards(null); // classic never uses the level board source
+      await _pump(tester, level: classicLevel(42), boards: boards, classic: true);
+      expect(boards.calls, 0);
+      expect(find.text('Classic'), findsOneWidget);
+      expect(find.text('Score 0'), findsOneWidget);
+      expect(find.byKey(const Key('goal-chip-0')), findsNothing);
+      expect(find.byKey(const Key('booster-hammer')), findsNothing);
+      expect(find.byKey(const Key('booster-hint')), findsNothing);
+      expect(find.byKey(const Key('booster-undo')), findsOneWidget);
+      expect(find.byKey(const Key('cell-35')), findsOneWidget);
+      expect(find.byKey(const Key('add-left')), findsOneWidget);
+    });
+
+    testWidgets('pairs score; clearing the board deals a new one (+bonus); resumes from its own slot', (tester) async {
+      await saveClassic([
+        [1, 9, null],
+        [null, 5, 5],
+      ], score: 30);
+      await _pump(tester, level: classicLevel(1), classic: true);
+      expect(find.text('Score 30'), findsOneWidget);
+      await tester.tap(_cell(0));
+      await tester.tap(_cell(1));
+      await tester.pump(_clear);
+      await tester.pumpAndSettle();
+      expect(find.text('Score ${30 + kPairPoints + kRowPoints}'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('booster-undo')));
+      await tester.pumpAndSettle();
+      expect(find.text('Score 30'), findsOneWidget, reason: 'undo restores the score');
+      await tester.tap(_cell(0));
+      await tester.tap(_cell(1));
+      await tester.pump(_clear);
+      await tester.pumpAndSettle();
+      await tester.tap(_cell(1)); // row 0 was removed
+      await tester.tap(_cell(2));
+      await tester.pump(_clear);
+      await tester.pumpAndSettle();
+      final s = 30 + 2 * kPairPoints + 2 * kRowPoints + kStageClearBonus;
+      expect(find.text('Score $s'), findsOneWidget);
+      expect(find.byKey(const Key('lose-overlay')), findsNothing);
+      expect(find.byKey(const Key('cell-35')), findsOneWidget, reason: 'new 9×4 board');
+      final saved = await GameSaveStore.classic().load(classicLevel(999));
+      expect(saved!.state.score, s);
+      expect(saved.state.endless, isTrue);
+      expect(await GameSaveStore().load(_level(const [])), isNull, reason: 'level slot untouched');
+    });
+
+    testWidgets('stuck: overlay shows the score; Map pops GameResult.lose with the score', (tester) async {
+      await saveClassic(
+        [
+          [1, 2, 3],
+        ],
+        used: 5,
+        score: 120,
+      );
+      final h = await _pump(tester, level: classicLevel(1), classic: true);
+      expect(find.byKey(const Key('lose-overlay')), findsOneWidget);
+      expect(find.text('No more moves'), findsOneWidget);
+      expect(find.byKey(const Key('lose-score')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('lose-map')));
+      await tester.pumpAndSettle();
+      expect(h.result!.won, isFalse);
+      expect(h.result!.score, 120);
+      expect(await GameSaveStore.classic().load(classicLevel(1)), isNull);
+    });
   });
 }

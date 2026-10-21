@@ -37,6 +37,7 @@ class GameController extends ChangeNotifier {
     required this.hints,
     Map<String, int> spent = const {},
     this.onBoosterSpent,
+    this.nextStageBoard,
     bool tutorialDone = true,
     this.clearDuration = Tk.clear,
   }) : _state = state,
@@ -50,6 +51,9 @@ class GameController extends ChangeNotifier {
 
   final Level level;
   final Board initialBoard;
+
+  /// Classic: deals the next board when the current one is cleared.
+  final Board Function(GameState cleared)? nextStageBoard;
 
   /// Inventory snapshot from GameArgs (already reflects earlier spends).
   final Map<String, int> _inventory;
@@ -303,6 +307,8 @@ class GameController extends ChangeNotifier {
   // ---- internals -----------------------------------------------------------
 
   void _commit(GameState next) {
+    final deal = nextStageBoard;
+    if (next.endless && deal != null && next.board.isCleared) next = next.nextStage(deal(next));
     _state = next;
     hintPair = tutorialStep > 0 ? hintPair : null;
     hintAdd = false;

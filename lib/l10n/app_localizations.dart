@@ -146,12 +146,6 @@ abstract class AppLocalizations {
   /// **'No ad available right now'**
   String get noAdAvailable;
 
-  /// No description provided for @comingSoon.
-  ///
-  /// In en, this message translates to:
-  /// **'Coming soon'**
-  String get comingSoon;
-
   /// No description provided for @introStarsTitle.
   ///
   /// In en, this message translates to:
@@ -217,12 +211,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Daily · {n}-day streak'**
   String mapDailyStreak(int n);
-
-  /// No description provided for @mapClassicContinue.
-  ///
-  /// In en, this message translates to:
-  /// **'Classic · Continue'**
-  String get mapClassicContinue;
 
   /// No description provided for @mapWorld.
   ///
@@ -685,6 +673,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Grey = completed · Dark = today'**
   String get dailyLegend;
+
+  /// No description provided for @classicOver.
+  ///
+  /// In en, this message translates to:
+  /// **'No more moves'**
+  String get classicOver;
+
+  /// No description provided for @classicScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Score {n}'**
+  String classicScore(int n);
+
+  /// No description provided for @mapClassicBest.
+  ///
+  /// In en, this message translates to:
+  /// **'Best {n}'**
+  String mapClassicBest(int n);
 }
 
 class _AppLocalizationsDelegate

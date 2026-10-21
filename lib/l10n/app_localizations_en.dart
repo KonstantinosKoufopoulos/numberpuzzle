@@ -35,9 +35,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noAdAvailable => 'No ad available right now';
 
   @override
-  String get comingSoon => 'Coming soon';
-
-  @override
   String get introStarsTitle => 'Stars';
 
   @override
@@ -74,9 +71,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String mapDailyStreak(int n) {
     return 'Daily · $n-day streak';
   }
-
-  @override
-  String get mapClassicContinue => 'Classic · Continue';
 
   @override
   String mapWorld(int total, int done) {
@@ -363,4 +357,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dailyLegend => 'Grey = completed · Dark = today';
+
+  @override
+  String get classicOver => 'No more moves';
+
+  @override
+  String classicScore(int n) {
+    return 'Score $n';
+  }
+
+  @override
+  String mapClassicBest(int n) {
+    return 'Best $n';
+  }
 }

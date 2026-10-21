@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../ads/ad_policy.dart';
 import '../ads/ad_service.dart';
+import '../classic/classic.dart';
 import '../daily/daily.dart';
 import '../engine/level.dart';
 import '../game/game_result.dart';
@@ -60,6 +61,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
     widget.progress.addListener(_onProgress);
     if (!widget.progress.isLoaded) widget.progress.load();
     _loadDaily();
+    _loadClassicBest();
   }
 
   @override
@@ -102,6 +104,36 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
       ),
     ));
     await _loadDaily();
+  }
+
+  int _classicBest = 0;
+
+  Future<void> _loadClassicBest() async {
+    final b = await ClassicStore().best();
+    if (mounted) setState(() => _classicBest = b);
+  }
+
+  /// Classic: endless game on the shared game screen (GameArgs.isClassic).
+  /// The best score is saved here; no interstitial (not a level).
+  Future<void> _openClassic() async {
+    final nav = Navigator.of(context);
+    while (mounted) {
+      final level = classicLevel(widget.clock().microsecondsSinceEpoch & 0x7fffffff);
+      final r = await nav.push(GameRoute(
+        levelId: level.id,
+        args: GameArgs(
+          level: level,
+          ads: widget.ads,
+          boosters: const {},
+          isClassic: true,
+          onRequestRewarded: _requestRewarded,
+        ),
+        builder: widget.gameBuilder,
+      ));
+      if (r != null) await ClassicStore().record(r.score);
+      if (r == null || !r.retry) break;
+    }
+    await _loadClassicBest();
   }
 
   void _openSettings() {
@@ -231,8 +263,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                       key: const Key('classicEntry'),
                       icon: Icons.grid_view_rounded,
                       label: t.classic,
-                      sub: t.mapClassicContinue,
-                      onTap: () => _play(levels, currentLevel),
+                      sub: t.mapClassicBest(_classicBest),
+                      onTap: _openClassic,
                     ),
                   ),
                 ]),

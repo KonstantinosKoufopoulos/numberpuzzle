@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../classic/classic.dart';
 import '../../engine/board.dart';
 import '../../engine/game.dart';
 import '../../engine/goals.dart';
@@ -56,7 +57,8 @@ class BoardGameScreen extends StatefulWidget {
 }
 
 class _BoardGameScreenState extends State<BoardGameScreen> {
-  late final GameSaveStore _saves = widget.saves ?? GameSaveStore();
+  late final GameSaveStore _saves = widget.saves ?? (widget.args.isClassic ? GameSaveStore.classic() : GameSaveStore());
+  bool get _classic => widget.args.isClassic;
   GameController? _c;
   bool _error = false;
   bool _popped = false;
@@ -79,6 +81,9 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
       final GameController c;
       if (saved != null) {
         c = _controller(saved.initialBoard, saved.state, saved.spent, tutorialDone);
+      } else if (_classic) {
+        final s = classicStart(level.seed);
+        c = _controller(s.board, s, const {}, true);
       } else {
         final board = await (widget.boards ?? BoardGameScreen.defaultBoards).boardFor(level);
         final s = GameState.forLevel(level, board);
@@ -99,6 +104,7 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
     boosters: widget.args.boosters,
     spent: spent,
     onBoosterSpent: widget.args.onBoosterSpent,
+    nextStageBoard: _classic ? (g) => classicNextBoard(widget.args.level.seed, g) : null,
     tutorialDone: tutorialDone,
     store: _saves,
     hints: widget.hints,
@@ -232,6 +238,7 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
         boostersUsed: c.state.boostersUsed,
         boostersSpent: Map.of(c.spent),
         retry: retry,
+        score: c.state.score,
       ),
     );
   }
@@ -248,7 +255,7 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.args.isDaily ? t.dailyTitle : t.level(widget.args.level.id)),
+          title: Text(_classic ? t.classic : (widget.args.isDaily ? t.dailyTitle : t.level(widget.args.level.id))),
           centerTitle: true,
         ),
         body: SafeArea(
@@ -293,7 +300,7 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
       padding: const EdgeInsets.symmetric(horizontal: Tk.s),
       child: Column(
         children: [
-          _Hud(state: c.state),
+          _Hud(state: c.state, classic: _classic),
           if (c.tutorialStep > 0) _tutorial(t, c),
           if (c.mode != ToolMode.none) _modeBanner(t, c),
           if (c.hintBusy) Padding(padding: const EdgeInsets.all(Tk.xs), child: Text(t.hintSearching)),
@@ -401,6 +408,8 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
   Widget _boosterBar(AppLocalizations t, GameController c) => Row(
     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
     children: [
+      // Classic: inventory boosters stay for levels; only undo here.
+      if (!_classic) ...[
       _BoosterButton(
         id: BoosterId.hammer,
         icon: Icons.gavel,
@@ -424,6 +433,7 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
         count: c.boosterCount(BoosterId.hint),
         onTap: _hint,
       ),
+      ],
       _BoosterButton(id: 'undo', icon: Icons.undo, label: t.undo, onTap: c.state.canUndo ? c.undo : null),
     ],
   );
@@ -453,8 +463,18 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(t.stuckTitle, key: const Key('lose-title'), style: theme.textTheme.titleLarge),
+                    Text(
+                      _classic ? t.classicOver : t.stuckTitle,
+                      key: const Key('lose-title'),
+                      style: theme.textTheme.titleLarge,
+                    ),
                     const SizedBox(height: Tk.m),
+                    if (_classic)
+                      Text(
+                        t.classicScore(c.state.score),
+                        key: const Key('lose-score'),
+                        style: theme.textTheme.headlineSmall,
+                      ),
                     Wrap(
                       spacing: Tk.s,
                       runSpacing: Tk.s,
@@ -502,8 +522,9 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
 
 /// HUD: up to 3 goal chips with live progress (no timer).
 class _Hud extends StatelessWidget {
-  const _Hud({required this.state});
+  const _Hud({required this.state, this.classic = false});
   final GameState state;
+  final bool classic;
 
   static String chip(AppLocalizations t, Goal g, int d) => switch (g.type) {
     GoalType.number => t.goalChipNumber(g.value ?? 0, d, g.count),
@@ -534,6 +555,11 @@ class _Hud extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(t.startNoTimer, style: theme.textTheme.bodySmall?.copyWith(color: ink.textMuted)),
+          if (classic)
+            Padding(
+              padding: const EdgeInsets.only(top: Tk.xs),
+              child: Text(t.classicScore(state.score), key: const Key('classic-score'), style: theme.textTheme.titleMedium),
+            ),
           const SizedBox(height: Tk.xs),
           Row(
             children: [

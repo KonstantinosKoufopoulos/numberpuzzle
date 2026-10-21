@@ -35,9 +35,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get noAdAvailable => 'Δεν υπάρχει διαθέσιμη διαφήμιση τώρα';
 
   @override
-  String get comingSoon => 'Έρχεται σύντομα';
-
-  @override
   String get introStarsTitle => 'Αστέρια';
 
   @override
@@ -76,9 +73,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String mapDailyStreak(int n) {
     return 'Ημερήσιο · Σερί $n ημέρες';
   }
-
-  @override
-  String get mapClassicContinue => 'Κλασικό · Συνέχεια';
 
   @override
   String mapWorld(int total, int done) {
@@ -370,4 +364,17 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get dailyLegend => 'Γκρι = ολοκληρώθηκε · Μαύρο = σήμερα';
+
+  @override
+  String get classicOver => 'Τέλος κινήσεων';
+
+  @override
+  String classicScore(int n) {
+    return 'Σκορ $n';
+  }
+
+  @override
+  String mapClassicBest(int n) {
+    return 'Ρεκόρ $n';
+  }
 }

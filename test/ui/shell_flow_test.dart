@@ -30,7 +30,8 @@ class FakeRewarded implements RewardedAdSource {
 /// Reads the real bundled pack from disk; avoids rootBundle caching across tests.
 class FileLevels extends LevelRepository {
   static final LevelPack pack = LevelPack.fromJson(
-      jsonDecode(File(LevelRepository.assetPath).readAsStringSync()) as Map<String, dynamic>);
+    jsonDecode(File(LevelRepository.assetPath).readAsStringSync()) as Map<String, dynamic>,
+  );
   @override
   Future<LevelPack> load() => SynchronousFuture(pack);
 }
@@ -45,8 +46,13 @@ class FakeAds extends AdService {
   RewardedAdSource get rewardedSource => rewarded ?? super.rewardedSource;
 }
 
-Future<ProgressController> pumpApp(WidgetTester tester, AdService ads,
-    {Map<String, Object> prefs = const {}, String locale = 'en', GameScreenBuilder? game}) async {
+Future<ProgressController> pumpApp(
+  WidgetTester tester,
+  AdService ads, {
+  Map<String, Object> prefs = const {},
+  String locale = 'en',
+  GameScreenBuilder? game,
+}) async {
   tester.view.physicalSize = const Size(1080, 2340);
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
@@ -55,7 +61,9 @@ Future<ProgressController> pumpApp(WidgetTester tester, AdService ads,
   SharedPreferences.setMockInitialValues(prefs);
   final pc = ProgressController(ProgressStore());
   await tester.runAsync(pc.load);
-  await tester.pumpWidget(NumberPuzzleApp(ads: ads, progress: pc, levels: FileLevels(), gameBuilder: game ?? StubGameScreen.builder));
+  await tester.pumpWidget(
+    NumberPuzzleApp(ads: ads, progress: pc, levels: FileLevels(), gameBuilder: game ?? StubGameScreen.builder),
+  );
   await settleMap(tester);
   return pc;
 }
@@ -88,9 +96,11 @@ void main() {
   });
 
   testWidgets('map: shows best stars, unlock up to current, scrolls to current', (tester) async {
-    await pumpApp(tester, FakeAds(), prefs: {
-      ProgressStore.key: '{"v":2,"stars":{"1":3,"2":2,"3":1},"unlocked":4,"seenIntros":[],"boosters":{}}',
-    });
+    await pumpApp(
+      tester,
+      FakeAds(),
+      prefs: {ProgressStore.key: '{"v":2,"stars":{"1":3,"2":2,"3":1},"unlocked":4,"seenIntros":[],"boosters":{}}'},
+    );
     expect(find.text('Play 4'), findsOneWidget);
     expect(find.text('★★★'), findsOneWidget);
     expect(find.text('★★☆'), findsOneWidget);
@@ -100,9 +110,11 @@ void main() {
   });
 
   testWidgets('map: deep progress auto-scrolls so current node 25 is on screen', (tester) async {
-    await pumpApp(tester, FakeAds(), prefs: {
-      ProgressStore.key: '{"v":2,"stars":{},"unlocked":25,"seenIntros":[],"boosters":{}}',
-    });
+    await pumpApp(
+      tester,
+      FakeAds(),
+      prefs: {ProgressStore.key: '{"v":2,"stars":{},"unlocked":25,"seenIntros":[],"boosters":{}}'},
+    );
     expect(find.text('25'), findsOneWidget);
     expect(tester.getCenter(find.text('25')).dy, lessThan(2340 / 3));
   });
@@ -174,8 +186,9 @@ void main() {
     expect(pc.progress.boosters['hint'], 2);
     await startLevel(tester);
     expect(args!.boosters['hint'], 2);
-    Navigator.of(tester.element(find.byKey(const Key('debugWin'))))
-        .pop(GameResult.win(levelId: 1, boostersUsed: 1, boostersSpent: const {'hint': 1}));
+    Navigator.of(
+      tester.element(find.byKey(const Key('debugWin'))),
+    ).pop(GameResult.win(levelId: 1, boostersUsed: 1, boostersSpent: const {'hint': 1}));
     await tester.pumpAndSettle();
     expect(pc.progress.boosters['hint'], 2, reason: 'no double deduction');
     expect(pc.progress.stars[1], 2);
@@ -192,15 +205,17 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final pc = ProgressController(ProgressStore());
     await tester.runAsync(pc.load);
-    await tester.pumpWidget(NumberPuzzleApp(
-      ads: FakeAds(rewarded: src),
-      progress: pc,
-      levels: FileLevels(),
-      gameBuilder: (c, a) {
-        args = a;
-        return StubGameScreen.builder(c, a);
-      },
-    ));
+    await tester.pumpWidget(
+      NumberPuzzleApp(
+        ads: FakeAds(rewarded: src),
+        progress: pc,
+        levels: FileLevels(),
+        gameBuilder: (c, a) {
+          args = a;
+          return StubGameScreen.builder(c, a);
+        },
+      ),
+    );
     await settleMap(tester);
     await startLevel(tester);
     expect(args!.onRequestRewarded, isNotNull);
@@ -212,9 +227,11 @@ void main() {
   });
 
   testWidgets('intro card shows only the first time (persisted)', (tester) async {
-    final pc = await pumpApp(tester, FakeAds(), prefs: {
-      ProgressStore.key: '{"v":2,"stars":{},"unlocked":7,"seenIntros":[],"boosters":{}}',
-    });
+    final pc = await pumpApp(
+      tester,
+      FakeAds(),
+      prefs: {ProgressStore.key: '{"v":2,"stars":{},"unlocked":7,"seenIntros":[],"boosters":{}}'},
+    );
     await startLevel(tester);
     expect(find.byKey(const Key('introCard')), findsOneWidget);
     await tester.tap(find.text('Got it'));
@@ -228,9 +245,11 @@ void main() {
   });
 
   testWidgets('gift level grants boosters once', (tester) async {
-    final pc = await pumpApp(tester, FakeAds(), prefs: {
-      ProgressStore.key: '{"v":2,"stars":{},"unlocked":10,"seenIntros":[],"boosters":{}}',
-    });
+    final pc = await pumpApp(
+      tester,
+      FakeAds(),
+      prefs: {ProgressStore.key: '{"v":2,"stars":{},"unlocked":10,"seenIntros":[],"boosters":{}}'},
+    );
     await startLevel(tester);
     expect(find.byKey(const Key('giftCard')), findsOneWidget);
     await tester.tap(find.text('Take the Hammer'));
@@ -288,5 +307,41 @@ void main() {
       await tester.pump();
     }
     expect(find.text('Daily · 1-day streak'), findsOneWidget);
+  });
+
+  testWidgets('classic: map card opens the game with isClassic, saves best, no interstitial', (tester) async {
+    final seen = <GameArgs>[];
+    final ads = FakeAds();
+    await pumpApp(
+      tester,
+      ads,
+      game: (c, a) {
+        seen.add(a);
+        return Scaffold(
+          body: TextButton(
+            key: const Key('end'),
+            onPressed: () =>
+                Navigator.pop(c, GameResult.lose(levelId: a.level.id, score: 150, retry: seen.length == 1)),
+            child: const Text('end'),
+          ),
+        );
+      },
+    );
+    expect(find.text('Best 0'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('classicEntry')));
+    await tester.pumpAndSettle();
+    expect(seen.single.isClassic, isTrue);
+    expect(seen.single.isDaily, isFalse);
+    expect(seen.single.level.goals, isEmpty);
+    await tester.tap(find.byKey(const Key('end'))); // Retry → new game
+    await tester.pumpAndSettle();
+    expect(seen.length, 2);
+    await tester.tap(find.byKey(const Key('end'))); // Map
+    for (var i = 0; i < 10; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+      await tester.pump();
+    }
+    expect(find.text('Best 150'), findsOneWidget);
+    expect(ads.calls, isEmpty);
   });
 }

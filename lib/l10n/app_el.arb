@@ -8,7 +8,6 @@
   "undo": "Αναίρεση",
   "win": "Ολοκληρώθηκε!",
   "noAdAvailable": "Δεν υπάρχει διαθέσιμη διαφήμιση τώρα",
-  "comingSoon": "Έρχεται σύντομα",
   "introStarsTitle": "Αστέρια",
   "introStarsBody": "Καθάρισε τον αριθμό πάνω σε αστέρι για να το μαζέψεις.",
   "introGrassTitle": "Γρασίδι",
@@ -20,7 +19,6 @@
   "introSlimeTitle": "Γλίτσα",
   "introSlimeBody": "Η γλίτσα εξαφανίζεται όταν όλα τα γύρω κελιά είναι άδεια.",
   "mapDailyStreak": "Ημερήσιο · Σερί {n} ημέρες",
-  "mapClassicContinue": "Κλασικό · Συνέχεια",
   "mapWorld": "Κόσμος 1 · {total} επίπεδα · {done}/{total}",
   "mapPlay": "Παίξε {n}",
   "startCta": "Ξεκίνα",
@@ -97,5 +95,8 @@
   "dailyBest": "Καλύτερο: {n}",
   "dailyPlay": "Παίξε το σημερινό",
   "dailyDone": "Ολοκληρώθηκε για σήμερα ✓",
-  "dailyLegend": "Γκρι = ολοκληρώθηκε · Μαύρο = σήμερα"
+  "dailyLegend": "Γκρι = ολοκληρώθηκε · Μαύρο = σήμερα",
+  "classicOver": "Τέλος κινήσεων",
+  "classicScore": "Σκορ {n}",
+  "mapClassicBest": "Ρεκόρ {n}"
 }

@@ -31,6 +31,8 @@ class SavedGame {
     'boostersUsed': state.boostersUsed,
     'moveCount': state.moveCount,
     'spent': spent,
+    if (state.endless) 'endless': true,
+    if (state.score != 0) 'score': state.score,
   };
 
   /// Rebuilds a saved game for [level]; null if it belongs to another level
@@ -51,6 +53,8 @@ class SavedGame {
         addNumbersUsed: j['addNumbersUsed'] as int,
         boostersUsed: j['boostersUsed'] as int,
         moveCount: j['moveCount'] as int? ?? 0,
+        endless: j['endless'] as bool? ?? false,
+        score: j['score'] as int? ?? 0,
       ),
     );
   }
@@ -59,12 +63,21 @@ class SavedGame {
 /// Persists the in-progress level (one slot) and the tutorial flag in
 /// shared_preferences. Separate from the shell's `progress` key.
 class GameSaveStore {
+  GameSaveStore({this.slot = key});
+
+  /// Classic mode keeps its own slot so it never clobbers a level in progress.
+  GameSaveStore.classic() : slot = classicKey;
+
   static const String key = 'game_v1';
+  static const String classicKey = 'classic_game_v1';
+
+  /// Prefs key of this store's single save slot.
+  final String slot;
   static const String tutorialKey = 'tutorial_done_v1';
 
   Future<SavedGame?> load(Level level) async {
     final p = await SharedPreferences.getInstance();
-    final s = p.getString(key);
+    final s = p.getString(slot);
     if (s == null) return null;
     try {
       return SavedGame.fromJson(jsonDecode(s) as Map<String, dynamic>, level);
@@ -75,12 +88,12 @@ class GameSaveStore {
 
   Future<void> save(SavedGame game) async {
     final p = await SharedPreferences.getInstance();
-    await p.setString(key, jsonEncode(game.toJson()));
+    await p.setString(slot, jsonEncode(game.toJson()));
   }
 
   Future<void> clear() async {
     final p = await SharedPreferences.getInstance();
-    await p.remove(key);
+    await p.remove(slot);
   }
 
   Future<bool> tutorialDone() async => (await SharedPreferences.getInstance()).getBool(tutorialKey) ?? false;
