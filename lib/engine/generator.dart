@@ -110,6 +110,10 @@ class SeededBoardGenerator implements BoardGenerator {
   /// UX flag (revertible): level ids whose board must be won by the cheap
   /// greedy player (`greedyPairsToWin != null`, no boosters, level's Add
   /// numbers limit); otherwise reseed. Pass `{}` to disable.
+  ///
+  /// Level 13 (grass 10 + number 10) is intentionally excluded: no seed
+  /// within 50 seeds / 3M nodes passes the greedy check. To be checked in
+  /// playtest by Takaros.
   static const Set<int> kRequireGreedyWinLevels = {1, 2, 3, 4, 5, 6, 15, 25};
   final Set<int> requireGreedyWinLevels;
 
@@ -180,7 +184,7 @@ class SeededBoardGenerator implements BoardGenerator {
     if (best != null) return best;
     throw StateError(
       'Level ${level.id}: no valid board within $maxReseeds seeds / $levelNodeBudget nodes '
-      '(late placement, first-pair rule${target == null ? '' : ', goal-minPairs >= $kGoalMinPairsFloor'}; '
+      '(late placement, first-pair rule, star distance >= $kMinStarDistance${target == null ? '' : ', goal-minPairs >= $kGoalMinPairsFloor'}; '
       'no fallback)',
     );
   }
@@ -216,6 +220,28 @@ class SeededBoardGenerator implements BoardGenerator {
     for (final (a, b) in fastValidPairs(board)) {
       for (final c in [board[a], board[b]]) {
         if (c.item == CellItem.star || c.grass) return false;
+      }
+    }
+    return true;
+  }
+
+  /// Minimum Chebyshev distance between any two stars.
+  static const int kMinStarDistance = 2;
+
+  static int chebyshev(int a, int b, int cols) {
+    final dr = (a ~/ cols - b ~/ cols).abs(), dc = (a % cols - b % cols).abs();
+    return dr > dc ? dr : dc;
+  }
+
+  /// True if no two stars on [board] are 8-neighbour adjacent.
+  static bool starsSpaced(Board board) {
+    final s = [
+      for (var i = 0; i < board.length; i++)
+        if (board[i].item == CellItem.star) i,
+    ];
+    for (var i = 0; i < s.length; i++) {
+      for (var j = i + 1; j < s.length; j++) {
+        if (chebyshev(s[i], s[j], board.columns) < kMinStarDistance) return false;
       }
     }
     return true;
@@ -403,6 +429,20 @@ class SeededBoardGenerator implements BoardGenerator {
     if (p1 == null || eligible == null) return null;
     rng.shuffle(eligible);
     if (spread && l.stars > 1) eligible = _spreadOut(eligible, l.stars, cols);
+    // Star spacing: no two stars in 8-neighbour cells (Chebyshev >= 2).
+    if (l.stars > 1) {
+      final stars = <int>[];
+      final rest = <int>[];
+      for (final c in eligible) {
+        if (stars.length < l.stars && stars.every((s) => chebyshev(c, s, cols) >= kMinStarDistance)) {
+          stars.add(c);
+        } else {
+          rest.add(c);
+        }
+      }
+      if (stars.length < l.stars || stars.length + rest.length < sg) return null;
+      eligible = [...stars, ...rest];
+    }
     final finalCells = List<Cell>.of(cells);
     for (var k = 0; k < l.stars; k++) {
       finalCells[eligible[k]] = finalCells[eligible[k]].copyWith(item: CellItem.star);

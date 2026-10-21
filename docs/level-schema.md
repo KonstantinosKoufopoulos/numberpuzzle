@@ -99,6 +99,9 @@ unknown `gift`/`introduces`/goal type rejected.
   (max-min Chebyshev distance, stars first), and the final board is
   re-verified (no boosters, <= 3 Add numbers). There is NO fallback: if no
   seed works, generation throws `StateError` naming the level.
+* Star spacing: no two stars on 8-neighbour cells (Chebyshev distance
+  >= 2, `kMinStarDistance`); enforced at placement (attempt reseeds if not
+  enough spaced cells) and asserted in CI over all 30 levels.
 * First-pair rule: no star/grass cell is part of any valid pair on the
   starting board (depth 1, no Add numbers); asserted in CI.
 * Goal-minPairs (star/grass goals only): the minimum number of pairs needed
@@ -109,6 +112,9 @@ unknown `gift`/`introduces`/goal type rejected.
   `docs/level-metrics.md` (currently: **level 22**, 6 of 7).
 * `requireGreedyWinLevels` (default {1-6, 15, 25}, revertible flag): the
   greedy player must win without boosters within the level's 5 Add numbers.
+  Level 13 (grass 10 + number 10) is intentionally excluded: no seed within
+  50 seeds / 3M nodes passes the greedy check; to be checked in playtest by
+  Takaros.
 * Level 14 was reduced to star 6 + grass 6 (from grass 12) so it satisfies
   these rules; all 30 levels must generate (CI asserts no errors).
 * Per-level deterministic cap: `maxReseeds` (50 per placement mode) and
