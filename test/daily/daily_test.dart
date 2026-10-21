@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:numberpuzzle/daily/daily.dart';
 import 'package:numberpuzzle/engine/board.dart';
 import 'package:numberpuzzle/engine/digit_flip.dart';
+import 'package:numberpuzzle/engine/game.dart';
 import 'package:numberpuzzle/engine/generator.dart';
 import 'package:numberpuzzle/engine/goals.dart';
 import 'package:numberpuzzle/engine/level.dart';
@@ -37,7 +38,7 @@ void main() {
         if (l.id >= 8 && l.id <= 20) jsonEncode(l.goals.map((g) => g.toJson()).toList()),
     };
     for (var d = 0; d < 40; d++) {
-      final l = dailyLevel(DateTime(2026, 10, 1).add(Duration(days: d)), _pack, _all)!;
+      final l = dailyLevel(DateTime(2026, 10, 1 + d), _pack, _all)!;
       final goals = l.digitFlip ? flipGoals(l.goals) : l.goals;
       expect(mid, contains(jsonEncode(goals.map((g) => g.toJson()).toList())));
     }
@@ -46,7 +47,7 @@ void main() {
   test('a week of daily boards generates (same board for the same day)', () {
     const gen = SeededBoardGenerator();
     for (var d = 0; d < 7; d++) {
-      final l = dailyLevel(DateTime(2026, 10, 21).add(Duration(days: d)), _pack, _all)!;
+      final l = dailyLevel(DateTime(2026, 10, 21 + d), _pack, _all)!;
       final b1 = gen.generate(l);
       expect(b1.cells.where((c) => c.value != null), isNotEmpty);
       if (d == 0) expect(gen.generate(l).cells, b1.cells);
@@ -67,7 +68,7 @@ void main() {
       final byId = {for (final l in _pack) l.id: l};
       final onlyL8 = {for (var i = 1; i <= 8; i++) i};
       for (var d = 0; d < 30; d++) {
-        final dd = day.add(Duration(days: d));
+        final dd = DateTime(day.year, day.month, day.day + d);
         final l = dailyLevel(dd, _pack, onlyL8)!;
         expect(sig(l), jsonEncode(byId[8]!.goals.map((g) => g.toJson()).toList()));
         expect(l.columns, byId[8]!.columns);
@@ -79,7 +80,7 @@ void main() {
       };
       final seen = <String>{};
       for (var d = 0; d < 30; d++) {
-        final dd = day.add(Duration(days: d));
+        final dd = DateTime(day.year, day.month, day.day + d);
         final l = dailyLevel(dd, _pack, done)!;
         expect(allowed, contains(sig(l)), reason: 'level 10 (gift) / 11 (intro) / >12 excluded');
         expect(dailyLevel(dd, _pack, done)!.toJson(), l.toJson());
@@ -91,7 +92,7 @@ void main() {
 
   group('digit flip variation', () {
     test('flip is date-seeded and both variants occur', () {
-      final flips = [for (var d = 0; d < 60; d++) dailyDigitFlip(DateTime(2026, 10, 1).add(Duration(days: d)))];
+      final flips = [for (var d = 0; d < 60; d++) dailyDigitFlip(DateTime(2026, 10, 1 + d))];
       expect(flips, contains(true));
       expect(flips, contains(false));
       expect(dailyDigitFlip(DateTime(2026, 10, 21, 1)), dailyDigitFlip(DateTime(2026, 10, 21, 23)));
@@ -99,7 +100,7 @@ void main() {
 
     test('number goals and weights flipped consistently; stars/grass/obstacles unchanged', () {
       const gen = SeededBoardGenerator();
-      final day = List.generate(60, (d) => DateTime(2026, 10, 1).add(Duration(days: d)))
+      final day = List.generate(60, (d) => DateTime(2026, 10, 1 + d))
           .firstWhere((d) => dailyDigitFlip(d) && dailyLevel(d, _pack, _all)!.goals.any((g) => g.type == GoalType.number));
       final l = dailyLevel(day, _pack, _all)!;
       final plain = Level(
@@ -128,15 +129,16 @@ void main() {
       }
     });
 
-    test('365 consecutive dates: map level board (+flip) always builds, both variants, solver sample', () {
+    test('365 consecutive dates: map level board (+flip) always builds, both variants; solver + original line replay win', () {
       const gen = SeededBoardGenerator();
       const solver = DfsSolver(nodeBudget: 200000);
       final byId = {for (final l in _pack) l.id: l};
       final mapBoards = <int, Board>{};
+      final solutions = <int, SolveResult>{};
       final solved = <String>{};
       var flipped = 0;
       for (var d = 0; d < 365; d++) {
-        final l = dailyLevel(DateTime(2026, 1, 1).add(Duration(days: d)), _pack, _all)!;
+        final l = dailyLevel(DateTime(2026, 1, 1 + d), _pack, _all)!;
         final t = byId[l.boardFrom]!;
         expect(l.seed, t.seed, reason: 'no date-derived seed');
         final mapBoard = mapBoards[t.id] ??= gen.generate(t);
@@ -145,6 +147,12 @@ void main() {
         if (l.digitFlip) flipped++;
         if (solved.add('${t.id}-${l.digitFlip}')) {
           expect(solver.solve(b, l.goals).solvable, isTrue, reason: 'daily ${l.id} (L${t.id}) flip=${l.digitFlip}');
+          // Replay the map level's own verified line, move for move.
+          var g = GameState.forLevel(l, b);
+          for (final m in (solutions[t.id] ??= gen.generateDetailed(t).solution).moves) {
+            g = g.apply(m);
+          }
+          expect(g.isWon, isTrue, reason: 'original line wins daily ${l.id} (L${t.id}) flip=${l.digitFlip}');
         }
       }
       expect(flipped, inInclusiveRange(1, 364), reason: 'both variants appear');

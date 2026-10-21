@@ -51,6 +51,7 @@ Future<_Harness> _pump(
   _Boards? boards,
   Future<void> Function(String id)? onSpent,
   bool classic = false,
+  bool daily = false,
 }) async {
   final h = _Harness();
   final args = GameArgs(
@@ -60,6 +61,7 @@ Future<_Harness> _pump(
     onRequestRewarded: rewarded,
     onBoosterSpent: onSpent,
     isClassic: classic,
+    isDaily: daily,
   );
   await tester.pumpWidget(
     MaterialApp(
@@ -628,6 +630,77 @@ void main() {
       expect(h.result!.won, isFalse);
       expect(h.result!.score, 120);
       expect(await GameSaveStore.classic().load(classicLevel(1)), isNull);
+    });
+  });
+
+  group('save slots', () {
+    testWidgets('daily has its own slot: map level in progress survives a daily; daily resumes', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final map = _level(const [Goal(GoalType.pairsSame, 3)]);
+      final mapBoard = Board.fromRows([
+        [1, 1, 2],
+        [3, 4, 9],
+      ]);
+      final mapState = GameState.forLevel(map, mapBoard).pair(0, 1);
+      await GameSaveStore().save(SavedGame(levelId: map.id, initialBoard: mapBoard, state: mapState));
+      final daily = _level(const [Goal(GoalType.pairsSame, 3)], id: 20261021);
+      await _pump(
+        tester,
+        level: daily,
+        daily: true,
+        board: Board.fromRows([
+          [5, 5, 2],
+          [2, 7, 8],
+        ]),
+      );
+      await tester.tap(_cell(0));
+      await tester.tap(_cell(1));
+      await tester.pump(_clear);
+      await tester.pumpAndSettle();
+      final m = await GameSaveStore().load(map);
+      expect(m, isNotNull, reason: 'map save intact');
+      expect(m!.state.moveCount, 1);
+      expect(m.state.board.cells, mapState.board.cells);
+      expect(m.initialBoard.cells, mapBoard.cells);
+      final d = await GameSaveStore.daily().load(daily);
+      expect(d!.state.moveCount, 1);
+      // Resume: no board source needed, state restored from the daily slot.
+      final boards = _Boards(null);
+      await tester.pumpWidget(const SizedBox());
+      await _pump(tester, level: daily, daily: true, boards: boards);
+      expect(boards.calls, 0);
+      expect(find.byKey(const Key('board-error')), findsNothing);
+      await tester.tap(_cell(2));
+      await tester.tap(_cell(3));
+      await tester.pump(_clear);
+      await tester.pumpAndSettle();
+      expect((await GameSaveStore.daily().load(daily))!.state.moveCount, 2);
+      expect((await GameSaveStore().load(map))!.state.moveCount, 1);
+    });
+
+    testWidgets('classic resume keeps the saved seed (same next boards)', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final b = Board.fromRows([
+        [1, 9],
+      ]);
+      final st = GameState.restore(
+        board: b,
+        goals: const [],
+        done: const [],
+        addNumbersLimit: 5,
+        addNumbersUsed: 2,
+        boostersUsed: 0,
+        endless: true,
+      );
+      await GameSaveStore.classic().save(SavedGame(levelId: kClassicLevelId, initialBoard: b, state: st, seed: 777));
+      await _pump(tester, level: classicLevel(123456), classic: true); // new launch = new seed
+      await tester.tap(_cell(0));
+      await tester.tap(_cell(1));
+      await tester.pump(_clear);
+      await tester.pumpAndSettle();
+      final saved = (await GameSaveStore.classic().load(classicLevel(1)))!;
+      expect(saved.seed, 777);
+      expect(saved.state.board.cells, classicNextBoard(777, st.pair(0, 1)).cells);
     });
   });
 }

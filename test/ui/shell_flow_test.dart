@@ -4,6 +4,9 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:numberpuzzle/storage/game_save_store.dart';
+import 'package:numberpuzzle/engine/game.dart';
+import 'package:numberpuzzle/engine/board.dart';
 import '../support/stub_game_screen.dart';
 import 'package:numberpuzzle/ads/ad_policy.dart';
 import 'package:numberpuzzle/ads/ad_service.dart';
@@ -267,10 +270,14 @@ void main() {
 
   testWidgets('daily: locked until level 8 is completed (card and screen)', (tester) async {
     GameArgs? args;
-    await pumpApp(tester, FakeAds(), game: (c, a) {
-      args = a;
-      return StubGameScreen.builder(c, a);
-    });
+    await pumpApp(
+      tester,
+      FakeAds(),
+      game: (c, a) {
+        args = a;
+        return StubGameScreen.builder(c, a);
+      },
+    );
     expect(find.text('Unlocks at level 8'), findsOneWidget);
     await tester.tap(find.byKey(const Key('dailyEntry')));
     for (var i = 0; i < 20 && find.byKey(const Key('dailyPlay')).evaluate().isEmpty; i++) {
@@ -337,6 +344,52 @@ void main() {
       await tester.pump();
     }
     expect(find.text('Daily · 1-day streak'), findsOneWidget);
+  });
+
+  testWidgets('classic: back mid-game records the best score from the classic save', (tester) async {
+    await pumpApp(
+      tester,
+      FakeAds(),
+      game: (c, a) => Scaffold(
+        body: TextButton(
+          key: const Key('back'),
+          onPressed: () async {
+            final b = Board.fromRows([
+              [1, 2],
+            ]);
+            await GameSaveStore.classic().save(
+              SavedGame(
+                levelId: a.level.id,
+                initialBoard: b,
+                state: GameState.restore(
+                  board: b,
+                  goals: const [],
+                  done: const [],
+                  addNumbersLimit: 5,
+                  addNumbersUsed: 0,
+                  boostersUsed: 0,
+                  endless: true,
+                  score: 90,
+                ),
+                seed: a.level.seed,
+              ),
+            );
+            if (c.mounted) Navigator.pop(c); // back: no GameResult
+          },
+          child: const Text('back'),
+        ),
+      ),
+    );
+    expect(find.text('Best 0'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('classicEntry')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('back')));
+    for (var i = 0; i < 10; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+    expect(find.text('Best 90'), findsOneWidget);
   });
 
   testWidgets('classic: map card opens the game with isClassic, saves best, no interstitial', (tester) async {

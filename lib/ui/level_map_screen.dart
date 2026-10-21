@@ -11,6 +11,7 @@ import '../game/game_result.dart';
 import '../l10n/app_localizations.dart';
 import '../levels/level_repository.dart';
 import '../settings/settings_controller.dart';
+import '../storage/game_save_store.dart';
 import '../storage/progress_store.dart';
 import 'intro_cards.dart';
 import 'level_start_sheet.dart';
@@ -114,7 +115,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
   }
 
   /// Classic: endless game on the shared game screen (GameArgs.isClassic).
-  /// The best score is saved here; no interstitial (not a level).
+  /// The best score is saved here (also on back/exit, from the classic save);
+  /// no interstitial (not a level).
   Future<void> _openClassic() async {
     final nav = Navigator.of(context);
     while (mounted) {
@@ -130,7 +132,13 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
         ),
         builder: widget.gameBuilder,
       ));
-      if (r != null) await ClassicStore().record(r.score);
+      if (r != null) {
+        await ClassicStore().record(r.score);
+      } else {
+        // Back/exit mid-game: the score lives in the classic save; record it too.
+        final saved = await GameSaveStore.classic().load(level);
+        if (saved != null) await ClassicStore().record(saved.state.score);
+      }
       if (r == null || !r.retry) break;
     }
     await _loadClassicBest();

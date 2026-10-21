@@ -9,7 +9,16 @@ import 'board_codec.dart';
 
 /// In-level state for resume (undo history is not persisted).
 class SavedGame {
-  const SavedGame({required this.levelId, required this.initialBoard, required this.state, this.spent = const {}});
+  const SavedGame({
+    required this.levelId,
+    required this.initialBoard,
+    required this.state,
+    this.spent = const {},
+    this.seed,
+  });
+
+  /// Classic: the game's seed, so resume deals the same next boards.
+  final int? seed;
 
   final int levelId;
 
@@ -33,6 +42,7 @@ class SavedGame {
     'spent': spent,
     if (state.endless) 'endless': true,
     if (state.score != 0) 'score': state.score,
+    if (seed != null) 'seed': seed,
   };
 
   /// Rebuilds a saved game for [level]; null if it belongs to another level
@@ -44,6 +54,7 @@ class SavedGame {
     return SavedGame(
       levelId: level.id,
       initialBoard: boardFromJson(j['initialBoard'] as Map<String, dynamic>),
+      seed: j['seed'] as int?,
       spent: (j['spent'] as Map<String, dynamic>? ?? {}).cast<String, int>(),
       state: GameState.restore(
         board: boardFromJson(j['board'] as Map<String, dynamic>),
@@ -68,8 +79,12 @@ class GameSaveStore {
   /// Classic mode keeps its own slot so it never clobbers a level in progress.
   GameSaveStore.classic() : slot = classicKey;
 
+  /// Daily keeps its own slot so it never clobbers a map level in progress.
+  GameSaveStore.daily() : slot = dailyKey;
+
   static const String key = 'game_v1';
   static const String classicKey = 'classic_game_v1';
+  static const String dailyKey = 'daily_game_v1';
 
   /// Prefs key of this store's single save slot.
   final String slot;

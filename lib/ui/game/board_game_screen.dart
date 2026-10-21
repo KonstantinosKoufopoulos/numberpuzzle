@@ -57,7 +57,14 @@ class BoardGameScreen extends StatefulWidget {
 }
 
 class _BoardGameScreenState extends State<BoardGameScreen> {
-  late final GameSaveStore _saves = widget.saves ?? (widget.args.isClassic ? GameSaveStore.classic() : GameSaveStore());
+  late final GameSaveStore _saves =
+      widget.saves ??
+      (widget.args.isClassic
+          ? GameSaveStore.classic()
+          : (widget.args.isDaily ? GameSaveStore.daily() : GameSaveStore()));
+
+  /// Classic seed: the saved game's seed on resume, else the level's.
+  late int _seed = widget.args.level.seed;
   bool get _classic => widget.args.isClassic;
   GameController? _c;
   bool _error = false;
@@ -80,9 +87,10 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
       final saved = await _saves.load(level);
       final GameController c;
       if (saved != null) {
+        if (_classic && saved.seed != null) _seed = saved.seed!;
         c = _controller(saved.initialBoard, saved.state, saved.spent, tutorialDone);
       } else if (_classic) {
-        final s = classicStart(level.seed);
+        final s = classicStart(_seed);
         c = _controller(s.board, s, const {}, true);
       } else {
         final board = await (widget.boards ?? BoardGameScreen.defaultBoards).boardFor(level);
@@ -104,7 +112,8 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
     boosters: widget.args.boosters,
     spent: spent,
     onBoosterSpent: widget.args.onBoosterSpent,
-    nextStageBoard: _classic ? (g) => classicNextBoard(widget.args.level.seed, g) : null,
+    nextStageBoard: _classic ? (g) => classicNextBoard(_seed, g) : null,
+    seed: _classic ? _seed : null,
     tutorialDone: tutorialDone,
     store: _saves,
     hints: widget.hints,
