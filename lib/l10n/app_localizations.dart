@@ -451,6 +451,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} × {count}'**
   String goalOther(String name, int count);
+
+  /// No description provided for @goalChipNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} × {done}/{count}'**
+  String goalChipNumber(int value, int done, int count);
+
+  /// No description provided for @goalChipStar.
+  ///
+  /// In en, this message translates to:
+  /// **'★ {done}/{count}'**
+  String goalChipStar(int done, int count);
+
+  /// No description provided for @goalChipGrass.
+  ///
+  /// In en, this message translates to:
+  /// **'Grass {done}/{count}'**
+  String goalChipGrass(int done, int count);
+
+  /// No description provided for @goalChipIce.
+  ///
+  /// In en, this message translates to:
+  /// **'❄ Ice {done}/{count}'**
+  String goalChipIce(int done, int count);
+
+  /// No description provided for @goalChipSlime.
+  ///
+  /// In en, this message translates to:
+  /// **'Slime {done}/{count}'**
+  String goalChipSlime(int done, int count);
+
+  /// No description provided for @goalChipPairsSame.
+  ///
+  /// In en, this message translates to:
+  /// **'Equal pairs {done}/{count}'**
+  String goalChipPairsSame(int done, int count);
+
+  /// No description provided for @goalChipPairsTen.
+  ///
+  /// In en, this message translates to:
+  /// **'Pairs of 10 {done}/{count}'**
+  String goalChipPairsTen(int done, int count);
+
+  /// No description provided for @addButton.
+  ///
+  /// In en, this message translates to:
+  /// **'+ Add numbers (free)'**
+  String get addButton;
+
+  /// No description provided for @addLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{left}/{limit} left'**
+  String addLeft(int left, int limit);
+
+  /// No description provided for @addConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'There are still {n} pairs. Add numbers?'**
+  String addConfirm(int n);
+
+  /// No description provided for @addConfirmYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Add numbers'**
+  String get addConfirmYes;
+
+  /// No description provided for @addAlt.
+  ///
+  /// In en, this message translates to:
+  /// **'Find pairs (Hint)'**
+  String get addAlt;
+
+  /// No description provided for @notNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get notNow;
+
+  /// No description provided for @hammerMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a number, slime or ice. Stone can\'t be hit.'**
+  String get hammerMode;
+
+  /// No description provided for @swapMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick two numbers to swap their digits.'**
+  String get swapMode;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @hintSearching.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for a pair…'**
+  String get hintSearching;
+
+  /// No description provided for @hintAddNumbers.
+  ///
+  /// In en, this message translates to:
+  /// **'No pairs left: use Add numbers.'**
+  String get hintAddNumbers;
+
+  /// No description provided for @stuckTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No pairs left'**
+  String get stuckTitle;
+
+  /// No description provided for @loseGiveUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Give up'**
+  String get loseGiveUp;
+
+  /// No description provided for @tutStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {i} of 3'**
+  String tutStep(int i);
+
+  /// No description provided for @tutTen.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap {a} and {b}: they add up to 10.'**
+  String tutTen(int a, int b);
+
+  /// No description provided for @tutSame.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap {a} and {b}: they are equal.'**
+  String tutSame(int a, int b);
+
+  /// No description provided for @tutLines.
+  ///
+  /// In en, this message translates to:
+  /// **'Pairs connect across, down or diagonally, over empty cells.'**
+  String get tutLines;
+
+  /// No description provided for @tutWrap.
+  ///
+  /// In en, this message translates to:
+  /// **'The end of a row connects to the start of the next.'**
+  String get tutWrap;
+
+  /// No description provided for @tutSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get tutSkip;
+
+  /// No description provided for @loadingLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing the level…'**
+  String get loadingLevel;
+
+  /// No description provided for @loadError.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t prepare this level. Please try again.'**
+  String get loadError;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
 }
 
 class _AppLocalizationsDelegate

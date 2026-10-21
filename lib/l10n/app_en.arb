@@ -178,5 +178,151 @@
         "type": "int"
       }
     }
-  }
+  },
+  "goalChipNumber": "{value} × {done}/{count}",
+  "@goalChipNumber": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      },
+      "done": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalChipStar": "★ {done}/{count}",
+  "@goalChipStar": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalChipGrass": "Grass {done}/{count}",
+  "@goalChipGrass": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalChipIce": "❄ Ice {done}/{count}",
+  "@goalChipIce": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalChipSlime": "Slime {done}/{count}",
+  "@goalChipSlime": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalChipPairsSame": "Equal pairs {done}/{count}",
+  "@goalChipPairsSame": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "goalChipPairsTen": "Pairs of 10 {done}/{count}",
+  "@goalChipPairsTen": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addButton": "+ Add numbers (free)",
+  "addLeft": "{left}/{limit} left",
+  "@addLeft": {
+    "placeholders": {
+      "left": {
+        "type": "int"
+      },
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "addConfirm": "There are still {n} pairs. Add numbers?",
+  "@addConfirm": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "addConfirmYes": "Add numbers",
+  "addAlt": "Find pairs (Hint)",
+  "notNow": "Not now",
+  "hammerMode": "Tap a number, slime or ice. Stone can't be hit.",
+  "swapMode": "Pick two numbers to swap their digits.",
+  "cancel": "Cancel",
+  "hintSearching": "Looking for a pair…",
+  "hintAddNumbers": "No pairs left: use Add numbers.",
+  "stuckTitle": "No pairs left",
+  "loseGiveUp": "Give up",
+  "tutStep": "Step {i} of 3",
+  "@tutStep": {
+    "placeholders": {
+      "i": {
+        "type": "int"
+      }
+    }
+  },
+  "tutTen": "Tap {a} and {b}: they add up to 10.",
+  "@tutTen": {
+    "placeholders": {
+      "a": {
+        "type": "int"
+      },
+      "b": {
+        "type": "int"
+      }
+    }
+  },
+  "tutSame": "Tap {a} and {b}: they are equal.",
+  "@tutSame": {
+    "placeholders": {
+      "a": {
+        "type": "int"
+      },
+      "b": {
+        "type": "int"
+      }
+    }
+  },
+  "tutLines": "Pairs connect across, down or diagonally, over empty cells.",
+  "tutWrap": "The end of a row connects to the start of the next.",
+  "tutSkip": "Skip",
+  "loadingLevel": "Preparing the level…",
+  "loadError": "We couldn't prepare this level. Please try again.",
+  "retry": "Retry"
 }

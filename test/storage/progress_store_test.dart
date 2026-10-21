@@ -26,7 +26,10 @@ void main() {
   });
 
   test('replaying an earlier level does not lower unlockedLevel', () {
-    final p = Progress()..recordWin(1, 3)..recordWin(2, 3)..recordWin(3, 1);
+    final p = Progress()
+      ..recordWin(1, 3)
+      ..recordWin(2, 3)
+      ..recordWin(3, 1);
     p.recordWin(1, 1);
     expect(p.unlockedLevel, 4);
   });
@@ -70,7 +73,12 @@ void main() {
     SharedPreferences.setMockInitialValues({ProgressStore.key: '{not json'});
     expect((await ProgressStore().load()).unlockedLevel, 1);
     SharedPreferences.setMockInitialValues({
-      ProgressStore.key: jsonEncode({'v': 99, 'stars': {'x': 3, '4': 9, '5': 'a'}, 'boosters': {'hammer': -3}, 'future': 1}),
+      ProgressStore.key: jsonEncode({
+        'v': 99,
+        'stars': {'x': 3, '4': 9, '5': 'a'},
+        'boosters': {'hammer': -3},
+        'future': 1,
+      }),
     });
     final p = await ProgressStore().load();
     expect(p.stars, {4: 3});
@@ -78,7 +86,9 @@ void main() {
   });
 
   test('boosters never go negative', () {
-    final p = Progress()..addBooster('hint', 1)..addBooster('hint', -5);
+    final p = Progress()
+      ..addBooster('hint', 1)
+      ..addBooster('hint', -5);
     expect(p.boosterCount('hint'), 0);
   });
 

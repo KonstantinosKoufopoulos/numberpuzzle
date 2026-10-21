@@ -38,6 +38,36 @@ class GameState {
   factory GameState.forLevel(Level level, Board board) =>
       GameState.start(board, level.goals, addNumbersLimit: level.addNumbersLimit);
 
+  /// Rebuilds a saved state (resume). Undo history is not restored.
+  factory GameState.restore({
+    required Board board,
+    required List<Goal> goals,
+    required List<int> done,
+    required int addNumbersLimit,
+    required int addNumbersUsed,
+    required int boostersUsed,
+    int moveCount = 0,
+  }) => GameState._(
+    board: board,
+    progress: GoalProgress.withDone(goals, done),
+    addNumbersLimit: addNumbersLimit,
+    addNumbersUsed: addNumbersUsed,
+    boostersUsed: boostersUsed,
+    moveCount: moveCount,
+  );
+
+  /// Same position with [extra] more "Add numbers" (rewarded continue after
+  /// a loss). Board, goals, undo history and booster count are kept.
+  GameState withExtraAddNumbers(int extra) => GameState._(
+    board: board,
+    progress: _progress.copy(),
+    addNumbersLimit: addNumbersLimit + extra,
+    addNumbersUsed: addNumbersUsed,
+    boostersUsed: boostersUsed,
+    moveCount: moveCount,
+    previous: previous,
+  );
+
   final Board board;
   final GoalProgress _progress;
   final int addNumbersLimit;

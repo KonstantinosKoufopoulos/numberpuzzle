@@ -6,12 +6,12 @@ import '../game/game_result.dart';
 import '../l10n/app_localizations.dart';
 import '../levels/level_repository.dart';
 import '../storage/progress_store.dart';
-import 'game_screen.dart';
+import 'game/board_game_screen.dart';
 import 'level_map_screen.dart';
 import 'theme.dart';
 
 /// Default game screen. m2-gameplay replaces this ONE line (docs/m2-seam.md).
-const GameScreenBuilder kDefaultGameScreen = StubGameScreen.builder;
+const GameScreenBuilder kDefaultGameScreen = BoardGameScreen.builder;
 
 class NumberPuzzleApp extends StatefulWidget {
   const NumberPuzzleApp({super.key, required this.ads, this.levels, this.progress, this.gameBuilder});

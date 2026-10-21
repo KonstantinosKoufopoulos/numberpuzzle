@@ -49,16 +49,12 @@ void main() {
     () {
       expect(SeededBoardGenerator.latePairIndex(4), 3);
       expect(SeededBoardGenerator.latePairIndex(20), 10);
-      for (final l in pack.levels.where(
-        (l) => l.layers.stars + l.layers.grass > 0 && generated.containsKey(l.id),
-      )) {
+      for (final l in pack.levels.where((l) => l.layers.stars + l.layers.grass > 0 && generated.containsKey(l.id))) {
         final g = generated[l.id]!;
         expect(g.latePlacement, isTrue, reason: 'level ${l.id}');
         final line = g.placementLine;
         final first = SeededBoardGenerator.latePairIndex(line.moves.whereType<PairMove>().length);
-        final at = {
-          for (var k = 0; k < line.clearOrder.length; k++) line.clearOrder[k]: line.clearPairIndex[k],
-        };
+        final at = {for (var k = 0; k < line.clearOrder.length; k++) line.clearOrder[k]: line.clearPairIndex[k]};
         for (var i = 0; i < g.board.length; i++) {
           final c = g.board[i];
           if (c.item == CellItem.star || c.grass) {
@@ -98,8 +94,7 @@ void main() {
       if (sgGoals.isEmpty) {
         expect(g.goalMinPairsMet, isNull);
       } else {
-        final target =
-            SeededBoardGenerator.kGoalMinPairsTargets[l.id] ?? SeededBoardGenerator.kDefaultGoalMinPairs;
+        final target = SeededBoardGenerator.kGoalMinPairsTargets[l.id] ?? SeededBoardGenerator.kDefaultGoalMinPairs;
         expect(g.goalMinPairsTarget, target);
         expect(g.goalMinPairs, greaterThanOrEqualTo(SeededBoardGenerator.kGoalMinPairsFloor));
         expect(SeededBoardGenerator.goalMinPairsFloor(g.board, sgGoals, target), g.goalMinPairs);
@@ -128,42 +123,36 @@ void main() {
     expect(g.solution.moves.whereType<PairMove>().length, greaterThanOrEqualTo(3));
   });
 
-  test(
-    'all 30 levels generate, satisfy constraints and are solvable (< 30 s)',
-    () {
-      final seeds = <int, int>{
-        for (final m in RegExp(
-          r'^\| (\d+) \| \d+ \| (\d+) \|',
-          multiLine: true,
-        ).allMatches(File('docs/generated-seeds.md').readAsStringSync()))
-          int.parse(m[1]!): int.parse(m[2]!),
-      };
-      final sw = Stopwatch()..start();
-      for (final l in pack.levels.where((l) => generated.containsKey(l.id))) {
-        final g = generated[l.id]!;
-        final b = g.board;
-        expect(g.seedUsed, seeds[l.id], reason: 'documented seed for level ${l.id}');
-        expect(b.columns, l.columns);
-        expect(b.rows, l.rows);
-        _checkConstraints(l, b, g.solution);
-        // Replay the line in a real game without boosters.
-        var s = GameState.start(b, l.goals, addNumbersLimit: solverAddLimit);
-        for (final m in g.solution.moves) {
-          s = s.apply(m);
-        }
-        expect(s.isWon, isTrue, reason: 'level ${l.id}');
-        expect(s.boostersUsed, 0);
-        expect(g.solution.moves.whereType<AddNumbersMove>().length, lessThanOrEqualTo(solverAddLimit));
+  test('all 30 levels generate, satisfy constraints and are solvable (< 30 s)', () {
+    final seeds = <int, int>{
+      for (final m in RegExp(
+        r'^\| (\d+) \| \d+ \| (\d+) \|',
+        multiLine: true,
+      ).allMatches(File('docs/generated-seeds.md').readAsStringSync()))
+        int.parse(m[1]!): int.parse(m[2]!),
+    };
+    final sw = Stopwatch()..start();
+    for (final l in pack.levels.where((l) => generated.containsKey(l.id))) {
+      final g = generated[l.id]!;
+      final b = g.board;
+      expect(g.seedUsed, seeds[l.id], reason: 'documented seed for level ${l.id}');
+      expect(b.columns, l.columns);
+      expect(b.rows, l.rows);
+      _checkConstraints(l, b, g.solution);
+      // Replay the line in a real game without boosters.
+      var s = GameState.start(b, l.goals, addNumbersLimit: solverAddLimit);
+      for (final m in g.solution.moves) {
+        s = s.apply(m);
       }
-      sw.stop();
-      // ignore: avoid_print
-      print(
-        '${generated.length}/30 levels generated + verified in ${generateMs + sw.elapsedMilliseconds} ms',
-      );
-      expect(generateMs + sw.elapsedMilliseconds, lessThan(30000));
-    },
-    timeout: const Timeout(Duration(seconds: 90)),
-  );
+      expect(s.isWon, isTrue, reason: 'level ${l.id}');
+      expect(s.boostersUsed, 0);
+      expect(g.solution.moves.whereType<AddNumbersMove>().length, lessThanOrEqualTo(solverAddLimit));
+    }
+    sw.stop();
+    // ignore: avoid_print
+    print('${generated.length}/30 levels generated + verified in ${generateMs + sw.elapsedMilliseconds} ms');
+    expect(generateMs + sw.elapsedMilliseconds, lessThan(30000));
+  }, timeout: const Timeout(Duration(seconds: 90)));
 }
 
 void _checkConstraints(Level l, Board b, SolveResult sol) {
@@ -190,9 +179,6 @@ void _checkConstraints(Level l, Board b, SolveResult sol) {
     if (c.item == CellItem.star || c.grass) expect(sol.clearedCells.contains(i), isTrue);
   }
   for (var r = 0; r < b.rows; r++) {
-    expect(
-      List.generate(b.columns, (c) => b.at(r, c)).every((x) => x.obstacle?.kind == ObstacleKind.stone),
-      isFalse,
-    );
+    expect(List.generate(b.columns, (c) => b.at(r, c)).every((x) => x.obstacle?.kind == ObstacleKind.stone), isFalse);
   }
 }

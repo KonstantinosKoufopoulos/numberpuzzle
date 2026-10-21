@@ -24,21 +24,16 @@ class GameResult {
     required int levelId,
     required int boostersUsed,
     Map<String, int> boostersSpent = const {},
-  }) =>
-      GameResult(
-        levelId: levelId,
-        won: true,
-        boostersUsed: boostersUsed,
-        starsEarned: starsForWin(boostersUsed: boostersUsed),
-        boostersSpent: boostersSpent,
-      );
+  }) => GameResult(
+    levelId: levelId,
+    won: true,
+    boostersUsed: boostersUsed,
+    starsEarned: starsForWin(boostersUsed: boostersUsed),
+    boostersSpent: boostersSpent,
+  );
 
   /// A loss (out of moves). Always 0 stars.
-  factory GameResult.lose({
-    required int levelId,
-    int boostersUsed = 0,
-    Map<String, int> boostersSpent = const {},
-  }) =>
+  factory GameResult.lose({required int levelId, int boostersUsed = 0, Map<String, int> boostersSpent = const {}}) =>
       GameResult(
         levelId: levelId,
         won: false,
@@ -61,8 +56,7 @@ class GameResult {
   final Map<String, int> boostersSpent;
 
   @override
-  String toString() =>
-      'GameResult(levelId: $levelId, won: $won, boostersUsed: $boostersUsed, stars: $starsEarned)';
+  String toString() => 'GameResult(levelId: $levelId, won: $won, boostersUsed: $boostersUsed, stars: $starsEarned)';
 }
 
 /// Everything the game screen receives.
@@ -74,6 +68,7 @@ class GameArgs {
     required this.boosters,
     this.isDaily = false,
     this.extraAddNumbers = 0,
+    this.onRequestRewarded,
   });
 
   final Level level;
@@ -85,6 +80,10 @@ class GameArgs {
 
   /// Extra "Add numbers" granted by a rewarded ad on the lose screen.
   final int extraAddNumbers;
+
+  /// In-level rewarded request (lose overlay "+1 Add numbers ▶"). Resolves
+  /// true only after the SDK reported the reward; null/false = no ad.
+  final Future<bool> Function()? onRequestRewarded;
 }
 
 /// Builds the game screen. The screen must `Navigator.pop(context, GameResult)`
@@ -94,11 +93,11 @@ typedef GameScreenBuilder = Widget Function(BuildContext context, GameArgs args)
 /// Route the map pushes. Pops with a [GameResult] or null if abandoned.
 class GameRoute extends MaterialPageRoute<GameResult> {
   GameRoute({required this.levelId, required GameArgs args, required GameScreenBuilder builder})
-      : assert(args.level.id == levelId),
-        super(
-          settings: RouteSettings(name: '/game/$levelId'),
-          builder: (c) => builder(c, args),
-        );
+    : assert(args.level.id == levelId),
+      super(
+        settings: RouteSettings(name: '/game/$levelId'),
+        builder: (c) => builder(c, args),
+      );
 
   final int levelId;
 }

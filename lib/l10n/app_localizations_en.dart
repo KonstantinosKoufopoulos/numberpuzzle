@@ -221,4 +221,116 @@ class AppLocalizationsEn extends AppLocalizations {
   String goalOther(String name, int count) {
     return '$name × $count';
   }
+
+  @override
+  String goalChipNumber(int value, int done, int count) {
+    return '$value × $done/$count';
+  }
+
+  @override
+  String goalChipStar(int done, int count) {
+    return '★ $done/$count';
+  }
+
+  @override
+  String goalChipGrass(int done, int count) {
+    return 'Grass $done/$count';
+  }
+
+  @override
+  String goalChipIce(int done, int count) {
+    return '❄ Ice $done/$count';
+  }
+
+  @override
+  String goalChipSlime(int done, int count) {
+    return 'Slime $done/$count';
+  }
+
+  @override
+  String goalChipPairsSame(int done, int count) {
+    return 'Equal pairs $done/$count';
+  }
+
+  @override
+  String goalChipPairsTen(int done, int count) {
+    return 'Pairs of 10 $done/$count';
+  }
+
+  @override
+  String get addButton => '+ Add numbers (free)';
+
+  @override
+  String addLeft(int left, int limit) {
+    return '$left/$limit left';
+  }
+
+  @override
+  String addConfirm(int n) {
+    return 'There are still $n pairs. Add numbers?';
+  }
+
+  @override
+  String get addConfirmYes => 'Add numbers';
+
+  @override
+  String get addAlt => 'Find pairs (Hint)';
+
+  @override
+  String get notNow => 'Not now';
+
+  @override
+  String get hammerMode => 'Tap a number, slime or ice. Stone can\'t be hit.';
+
+  @override
+  String get swapMode => 'Pick two numbers to swap their digits.';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get hintSearching => 'Looking for a pair…';
+
+  @override
+  String get hintAddNumbers => 'No pairs left: use Add numbers.';
+
+  @override
+  String get stuckTitle => 'No pairs left';
+
+  @override
+  String get loseGiveUp => 'Give up';
+
+  @override
+  String tutStep(int i) {
+    return 'Step $i of 3';
+  }
+
+  @override
+  String tutTen(int a, int b) {
+    return 'Tap $a and $b: they add up to 10.';
+  }
+
+  @override
+  String tutSame(int a, int b) {
+    return 'Tap $a and $b: they are equal.';
+  }
+
+  @override
+  String get tutLines =>
+      'Pairs connect across, down or diagonally, over empty cells.';
+
+  @override
+  String get tutWrap => 'The end of a row connects to the start of the next.';
+
+  @override
+  String get tutSkip => 'Skip';
+
+  @override
+  String get loadingLevel => 'Preparing the level…';
+
+  @override
+  String get loadError => 'We couldn\'t prepare this level. Please try again.';
+
+  @override
+  String get retry => 'Retry';
 }

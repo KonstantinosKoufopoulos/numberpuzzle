@@ -223,4 +223,119 @@ class AppLocalizationsEl extends AppLocalizations {
   String goalOther(String name, int count) {
     return '$name × $count';
   }
+
+  @override
+  String goalChipNumber(int value, int done, int count) {
+    return '$value × $done/$count';
+  }
+
+  @override
+  String goalChipStar(int done, int count) {
+    return '★ $done/$count';
+  }
+
+  @override
+  String goalChipGrass(int done, int count) {
+    return 'Γρασίδι $done/$count';
+  }
+
+  @override
+  String goalChipIce(int done, int count) {
+    return '❄ Πάγος $done/$count';
+  }
+
+  @override
+  String goalChipSlime(int done, int count) {
+    return 'Γλίτσα $done/$count';
+  }
+
+  @override
+  String goalChipPairsSame(int done, int count) {
+    return 'Ίσα ζευγάρια $done/$count';
+  }
+
+  @override
+  String goalChipPairsTen(int done, int count) {
+    return 'Ζευγάρια του 10 $done/$count';
+  }
+
+  @override
+  String get addButton => '+ Προσθήκη αριθμών (δωρεάν)';
+
+  @override
+  String addLeft(int left, int limit) {
+    return 'Απομένουν $left/$limit';
+  }
+
+  @override
+  String addConfirm(int n) {
+    return 'Υπάρχουν ακόμα $n ζευγάρια. Προσθήκη αριθμών;';
+  }
+
+  @override
+  String get addConfirmYes => 'Προσθήκη αριθμών';
+
+  @override
+  String get addAlt => 'Ψάξε ζευγάρια (Βοήθεια)';
+
+  @override
+  String get notNow => 'Όχι τώρα';
+
+  @override
+  String get hammerMode => 'Πάτησε αριθμό, γλίτσα ή πάγο. Η πέτρα δεν σπάει.';
+
+  @override
+  String get swapMode => 'Διάλεξε δύο αριθμούς για να αλλάξουν θέση.';
+
+  @override
+  String get cancel => 'Άκυρο';
+
+  @override
+  String get hintSearching => 'Ψάχνω ζευγάρι…';
+
+  @override
+  String get hintAddNumbers =>
+      'Δεν υπάρχουν ζευγάρια: πάτησε Προσθήκη αριθμών.';
+
+  @override
+  String get stuckTitle => 'Δεν υπάρχουν ζευγάρια';
+
+  @override
+  String get loseGiveUp => 'Τα παρατάω';
+
+  @override
+  String tutStep(int i) {
+    return 'Βήμα $i από 3';
+  }
+
+  @override
+  String tutTen(int a, int b) {
+    return 'Πάτησε $a και $b: αθροίζουν 10.';
+  }
+
+  @override
+  String tutSame(int a, int b) {
+    return 'Πάτησε $a και $b: είναι ίσοι.';
+  }
+
+  @override
+  String get tutLines =>
+      'Τα ζευγάρια ενώνονται οριζόντια, κάθετα ή διαγώνια, πάνω από κενά.';
+
+  @override
+  String get tutWrap =>
+      'Το τέλος της σειράς ενώνεται με την αρχή της επόμενης.';
+
+  @override
+  String get tutSkip => 'Παράλειψη';
+
+  @override
+  String get loadingLevel => 'Ετοιμάζουμε το επίπεδο…';
+
+  @override
+  String get loadError =>
+      'Δεν ήταν δυνατή η προετοιμασία του επιπέδου. Δοκίμασε ξανά.';
+
+  @override
+  String get retry => 'Ξανά';
 }
