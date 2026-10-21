@@ -11,11 +11,9 @@
       }
     }
   },
-  "goals": "Goals",
   "addNumbers": "Add numbers",
   "undo": "Undo",
   "win": "Level complete!",
-  "debugWin": "Win (debug)",
   "noAdAvailable": "No ad available right now",
   "comingSoon": "Coming soon",
   "introStarsTitle": "Stars",
@@ -94,16 +92,7 @@
   "winNext": "Next level",
   "winMap": "Map",
   "loseRetry": "Play again",
-  "loseReward": "Video: +1 Add numbers",
-  "debugLose": "Lose (debug)",
-  "debugBoosters": "Boosters used: {n}",
-  "@debugBoosters": {
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
+  "loseReward": "+1 Add numbers ▶",
   "goalPairsSame": "Clear {count} equal pairs",
   "@goalPairsSame": {
     "placeholders": {

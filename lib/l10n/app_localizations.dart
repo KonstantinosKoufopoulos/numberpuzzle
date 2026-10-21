@@ -122,12 +122,6 @@ abstract class AppLocalizations {
   /// **'Level {n}'**
   String level(int n);
 
-  /// No description provided for @goals.
-  ///
-  /// In en, this message translates to:
-  /// **'Goals'**
-  String get goals;
-
   /// No description provided for @addNumbers.
   ///
   /// In en, this message translates to:
@@ -145,12 +139,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Level complete!'**
   String get win;
-
-  /// No description provided for @debugWin.
-  ///
-  /// In en, this message translates to:
-  /// **'Win (debug)'**
-  String get debugWin;
 
   /// No description provided for @noAdAvailable.
   ///
@@ -359,20 +347,8 @@ abstract class AppLocalizations {
   /// No description provided for @loseReward.
   ///
   /// In en, this message translates to:
-  /// **'Video: +1 Add numbers'**
+  /// **'+1 Add numbers ▶'**
   String get loseReward;
-
-  /// No description provided for @debugLose.
-  ///
-  /// In en, this message translates to:
-  /// **'Lose (debug)'**
-  String get debugLose;
-
-  /// No description provided for @debugBoosters.
-  ///
-  /// In en, this message translates to:
-  /// **'Boosters used: {n}'**
-  String debugBoosters(int n);
 
   /// No description provided for @goalPairsSame.
   ///

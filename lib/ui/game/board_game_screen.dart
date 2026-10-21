@@ -24,6 +24,9 @@ import 'game_controller.dart';
 /// How long the «no ad available» message stays up (also hidden on the next action).
 const Duration kNoAdMessageDuration = Duration(seconds: 3);
 
+/// Upper bound for a rewarded request before it counts as "no ad".
+const Duration kRewardedTimeout = Duration(minutes: 2);
+
 class BoardGameScreen extends StatefulWidget {
   const BoardGameScreen({
     super.key,
@@ -182,12 +185,21 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
     final cb = widget.args.onRequestRewarded;
     _hideMessages();
     setState(() => _rewardBusy = true);
-    final ok = cb == null ? false : await cb().catchError((Object _) => false);
+    var ok = false;
+    try {
+      // Sync throws, async errors and a callback that never completes (e.g.
+      // the SDK never reports close) all count as "no ad" so the button
+      // can't get stuck disabled.
+      if (cb != null) ok = await cb().timeout(kRewardedTimeout, onTimeout: () => false);
+    } on Object {
+      ok = false;
+    }
     if (!mounted) return;
     setState(() {
       _rewardBusy = false;
       _noAd = !ok;
     });
+    _noAdTimer?.cancel();
     if (!ok) _noAdTimer = Timer(kNoAdMessageDuration, () => mounted ? setState(() => _noAd = false) : null);
     if (ok) _c!.continueWithExtraAddNumbers();
   }
@@ -448,11 +460,10 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
                     SizedBox(
                       width: double.infinity,
                       height: Tk.button,
-                      child: OutlinedButton.icon(
+                      child: OutlinedButton(
                         key: const Key('lose-reward'),
                         onPressed: noAd || _rewardBusy ? null : _reward,
-                        icon: noAd ? const SizedBox.shrink() : const Icon(Icons.play_arrow),
-                        label: noAd
+                        child: noAd
                             ? Text(t.noAdAvailable, key: const Key('lose-no-ad'), textAlign: TextAlign.center)
                             : Text(t.loseReward),
                       ),

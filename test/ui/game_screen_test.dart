@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -307,6 +309,62 @@ void main() {
     await tester.pump(kNoAdMessageDuration);
     expect(find.byKey(const Key('lose-no-ad')), findsNothing);
     expect(reward().onPressed, isNotNull);
+  });
+
+  // Reviewer case: '+1' stayed disabled after a no-ad result. Every failure
+  // mode of a non-null callback must re-enable the button after 3 s.
+  final failures = <String, Future<bool> Function()>{
+    'returns false': () async => false,
+    'throws synchronously': () => throw StateError('sdk'),
+    'async error': () => Future<bool>.error(StateError('sdk')),
+    'never completes': () => Completer<bool>().future,
+  };
+  failures.forEach((name, cb) {
+    testWidgets('lose overlay +1 re-enables 3 s after a no-ad result ($name)', (tester) async {
+      await _pump(
+        tester,
+        level: _level(const [Goal(GoalType.pairsTen, 1)], add: 0),
+        board: Board.fromRows([
+          [1, 2, 4],
+          [3, 0, 5],
+        ]),
+        rewarded: cb,
+      );
+      ButtonStyleButton reward() => tester.widget<ButtonStyleButton>(find.byKey(const Key('lose-reward')));
+      expect(find.text('+1 Add numbers ▶'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('lose-reward')));
+      await tester.pump();
+      if (name == 'never completes') {
+        expect(reward().onPressed, isNull, reason: 'busy while the ad is up');
+        await tester.pump(kRewardedTimeout);
+      }
+      expect(find.byKey(const Key('lose-no-ad')), findsOneWidget);
+      expect(reward().onPressed, isNull);
+      await tester.pump(kNoAdMessageDuration);
+      expect(find.text('+1 Add numbers ▶'), findsOneWidget);
+      expect(reward().onPressed, isNotNull);
+      // And it works again (second failure → disabled → re-enabled).
+      await tester.tap(find.byKey(const Key('lose-reward')));
+      await tester.pump();
+      if (name == 'never completes') await tester.pump(kRewardedTimeout);
+      expect(reward().onPressed, isNull);
+      await tester.pump(kNoAdMessageDuration);
+      expect(reward().onPressed, isNotNull);
+    });
+  });
+
+  testWidgets('lose overlay: null callback stays disabled with the no-ad label', (tester) async {
+    await _pump(
+      tester,
+      level: _level(const [Goal(GoalType.pairsTen, 1)], add: 0),
+      board: Board.fromRows([
+        [1, 2, 4],
+        [3, 0, 5],
+      ]),
+    );
+    expect(find.byKey(const Key('lose-no-ad')), findsOneWidget);
+    await tester.pump(kNoAdMessageDuration * 2);
+    expect(tester.widget<ButtonStyleButton>(find.byKey(const Key('lose-reward'))).onPressed, isNull);
   });
 
   testWidgets('lose overlay hierarchy: title, unmet goals, filled Retry, outlined reward, text Map', (tester) async {

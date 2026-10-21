@@ -23,9 +23,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get goals => 'Goals';
-
-  @override
   String get addNumbers => 'Add numbers';
 
   @override
@@ -33,9 +30,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get win => 'Level complete!';
-
-  @override
-  String get debugWin => 'Win (debug)';
 
   @override
   String get noAdAvailable => 'No ad available right now';
@@ -155,15 +149,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loseRetry => 'Play again';
 
   @override
-  String get loseReward => 'Video: +1 Add numbers';
-
-  @override
-  String get debugLose => 'Lose (debug)';
-
-  @override
-  String debugBoosters(int n) {
-    return 'Boosters used: $n';
-  }
+  String get loseReward => '+1 Add numbers ▶';
 
   @override
   String goalPairsSame(int count) {

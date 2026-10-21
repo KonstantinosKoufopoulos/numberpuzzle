@@ -61,7 +61,7 @@ const GameScreenBuilder kDefaultGameScreen = StubGameScreen.builder;
 ```
 
 (or pass `gameBuilder:` to `NumberPuzzleApp`). `StubGameScreen`
-(`lib/ui/game_screen.dart`) stays as the debug/test stub: booster ± counter,
+(`test/support/stub_game_screen.dart`, test-only) stays as the debug/test stub: booster ± counter,
 "Win (debug)", "Lose (debug)".
 
 ## Shell flow (lib/ui/level_map_screen.dart)

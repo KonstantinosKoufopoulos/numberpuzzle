@@ -23,9 +23,6 @@ class AppLocalizationsEl extends AppLocalizations {
   }
 
   @override
-  String get goals => 'Στόχοι';
-
-  @override
   String get addNumbers => 'Πρόσθεσε αριθμούς';
 
   @override
@@ -33,9 +30,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get win => 'Ολοκληρώθηκε!';
-
-  @override
-  String get debugWin => 'Νίκη (debug)';
 
   @override
   String get noAdAvailable => 'Δεν υπάρχει διαθέσιμη διαφήμιση τώρα';
@@ -158,15 +152,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get loseRetry => 'Ξαναπαίξε';
 
   @override
-  String get loseReward => 'Βίντεο: +1 Προσθήκη αριθμών';
-
-  @override
-  String get debugLose => 'Ήττα (debug)';
-
-  @override
-  String debugBoosters(int n) {
-    return 'Εργαλεία: $n';
-  }
+  String get loseReward => '+1 Πρόσθεσε αριθμούς ▶';
 
   @override
   String goalPairsSame(int count) {

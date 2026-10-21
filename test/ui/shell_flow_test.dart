@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:numberpuzzle/ui/game_screen.dart';
+import '../support/stub_game_screen.dart';
 import 'package:numberpuzzle/ads/ad_policy.dart';
 import 'package:numberpuzzle/ads/ad_service.dart';
 import 'package:numberpuzzle/engine/level.dart';
