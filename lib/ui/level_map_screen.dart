@@ -85,17 +85,13 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
   }
 
   /// In-level rewarded (game lose overlay). True only after onUserEarnedReward.
+  RewardedController? _rewardedCtl;
+
+  /// Resolves true ONLY if onUserEarnedReward fired (see RewardedController).
   Future<bool> _requestRewarded() {
-    var earned = false;
-    final done = Completer<bool>();
-    final outcome = RewardedController(widget.ads.rewardedSource).onUserTap(
-      grantReward: () => earned = true,
-      onClosed: () {
-        if (!done.isCompleted) done.complete(earned);
-      },
-    );
-    if (outcome == RewardedOutcome.noAdAvailable) return Future.value(false);
-    return done.future;
+    final c = _rewardedCtl ??= RewardedController(widget.ads.rewardedSource,
+        closeGrace: widget.ads.rewardedCloseGrace);
+    return c.requestReward();
   }
 
   Future<void> _play(List<Level> levels, Level level, {bool skipStart = false}) async {
@@ -136,6 +132,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
 
     if (result.won) {
       await pc.recordWin(level.id, result.starsEarned);
+      await widget.ads.recordLevelCompleted(isDaily: false);
       if (!mounted) return;
       final action = await Navigator.of(context).push(MaterialPageRoute<WinAction>(
         settings: const RouteSettings(name: '/win'),
