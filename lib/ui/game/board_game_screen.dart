@@ -451,7 +451,16 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
                       child: OutlinedButton.icon(
                         key: const Key('lose-reward'),
                         onPressed: noAd || _rewardBusy ? null : _reward,
-                        icon: noAd ? const SizedBox.shrink() : const Icon(Icons.play_arrow),
+                        icon: _rewardBusy
+                            ? const SizedBox(
+                                key: Key('lose-reward-spinner'),
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : noAd
+                            ? const SizedBox.shrink()
+                            : const Icon(Icons.play_arrow),
                         label: noAd
                             ? Text(t.noAdAvailable, key: const Key('lose-no-ad'), textAlign: TextAlign.center)
                             : Text(t.loseReward),

@@ -32,16 +32,35 @@ Font Manrope (SIL OFL 1.1) is planned (TODO, not bundled yet).
 * Debug/profile/tests and plain release use **only Google test ids**
   (`lib/ads/ad_ids.dart`, App ID via `manifestPlaceholders` in
   `android/app/build.gradle.kts`). No banners.
-* UMP consent at startup.
-* Interstitial: never in levels 1–3, max one per 3 levels and ≥180 s apart,
-  never in Daily, only after the win screen is dismissed – never mid-level,
-  never on Add numbers / undo.
-* Rewarded: only on user tap; reward granted only in `onUserEarnedReward`.
+* **UMP consent** at startup (`AdService.init`): consent info update →
+  consent form if required → `canRequestAds()`. `MobileAds.initialize()` and
+  every ad load happen only when `canRequestAds` is true.
+  Privacy options: `AdService.privacyOptionsRequired` (ValueNotifier) +
+  `AdService.showPrivacyOptions()`; drop `PrivacyOptionsEntry`
+  (`lib/ui/privacy_options_entry.dart`) into the settings screen.
+  Debug EEA geography (non-release only, ignored in release):
+  `--dart-define=UMP_DEBUG_EEA=true` (optionally
+  `--dart-define=UMP_TEST_DEVICE_IDS=<hashed id>`) or
+  `ads.debugGeographyEea = true; ads.resetConsentForDebug()`.
+* Interstitial (`AdPolicy`, pure Dart, injectable clock, state persisted in
+  SharedPreferences key `ad_policy`): never in levels 1–3, max one per 3
+  completed (won, non-daily) levels AND ≥3 min since the last one, never in
+  Daily, only after the win screen's Next – never mid-level, never before the
+  win screen, never on Add numbers / undo. The next ad is preloaded after one
+  is shown; if none is loaded nothing happens.
+* Rewarded: only on user tap; `onRequestRewarded` resolves `true` only when
+  `onUserEarnedReward` fired (once; closing without reward → `false`).
 * `--dart-define=ADS=false` disables the SDK entirely.
 * Real AdMob ids ONLY in a release built with `--dart-define=ADS_REAL=true`;
   every other build (debug, profile, plain release) uses Google test ids.
-  Playtest: `flutter build apk --release --split-per-abi`.
-  Play: `flutter build appbundle --release --dart-define=ADS_REAL=true`.
+
+## Export
+* Playtest (test ads): `flutter build apk --release --split-per-abi`
+  (or `--target-platform android-arm64`).
+* Play upload (real ads): `flutter build appbundle --release --dart-define=ADS_REAL=true`
+  → `build/app/outputs/bundle/release/app-release.aab`. Signed with the
+  upload key from `android/key.properties` if present, else debug-signed
+  (not uploadable).
 
 ## Build
 ```bash
