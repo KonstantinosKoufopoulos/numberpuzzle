@@ -321,5 +321,25 @@
   "settingsTutorial": "Tutorial",
   "settingsTutorialReplay": "Replay",
   "settingsTutorialDone": "The tutorial will play again on level 1.",
-  "settingsPrivacy": "Privacy & ads"
+  "settingsPrivacy": "Privacy & ads",
+  "dailyTitle": "Daily puzzle",
+  "dailyStreak": "♨ {n}-day streak",
+  "@dailyStreak": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyBest": "Best: {n}",
+  "@dailyBest": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyPlay": "Play today's",
+  "dailyDone": "Done for today ✓",
+  "dailyLegend": "Grey = completed · Dark = today"
 }

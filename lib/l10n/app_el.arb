@@ -91,5 +91,11 @@
   "settingsTutorial": "Οδηγός (tutorial)",
   "settingsTutorialReplay": "Επανάληψη",
   "settingsTutorialDone": "Ο οδηγός θα εμφανιστεί ξανά στο επίπεδο 1.",
-  "settingsPrivacy": "Απόρρητο και διαφημίσεις"
+  "settingsPrivacy": "Απόρρητο και διαφημίσεις",
+  "dailyTitle": "Ημερήσιο παζλ",
+  "dailyStreak": "♨ {n} ημέρες σερί",
+  "dailyBest": "Καλύτερο: {n}",
+  "dailyPlay": "Παίξε το σημερινό",
+  "dailyDone": "Ολοκληρώθηκε για σήμερα ✓",
+  "dailyLegend": "Γκρι = ολοκληρώθηκε · Μαύρο = σήμερα"
 }

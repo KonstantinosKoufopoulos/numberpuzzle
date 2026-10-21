@@ -242,4 +242,51 @@ void main() {
     expect(find.byKey(const Key('giftCard')), findsNothing);
     expect(pc.progress.boosterCount('hammer'), 2);
   });
+
+  testWidgets('daily: map card → calendar; win marks today done; isDaily and NO interstitial', (tester) async {
+    GameArgs? args;
+    final ads = FakeAds();
+    await pumpApp(
+      tester,
+      ads,
+      game: (c, a) {
+        args = a;
+        return StubGameScreen.builder(c, a);
+      },
+    );
+    expect(find.text('Daily · 0-day streak'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('dailyEntry')));
+    for (var i = 0; i < 20 && find.byKey(const Key('dailyPlay')).evaluate().isEmpty; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+    expect(find.text('Daily puzzle'), findsOneWidget);
+    final today = DateTime.now();
+    final key = today.year * 10000 + today.month * 100 + today.day;
+    expect(find.byKey(Key('day-$key-today')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('dailyPlay')));
+    await tester.pumpAndSettle();
+    expect(args!.isDaily, isTrue);
+    expect(args!.level.id, key);
+    await tester.tap(find.byKey(const Key('debugWin')));
+    for (var i = 0; i < 20 && find.byKey(const Key('winStars')).evaluate().isEmpty; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+    expect(find.text('Daily puzzle'), findsOneWidget, reason: 'win screen subtitle');
+    await tester.tap(find.byKey(const Key('winMap')));
+    await tester.pumpAndSettle();
+    expect(ads.calls, isEmpty, reason: 'never an interstitial in daily');
+    expect(find.byKey(Key('day-$key-done-today')), findsOneWidget);
+    expect(find.text('Done for today ✓'), findsOneWidget);
+    expect(find.text('♨ 1-day streak'), findsOneWidget);
+    await tester.pageBack();
+    for (var i = 0; i < 10; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+      await tester.pump();
+    }
+    expect(find.text('Daily · 1-day streak'), findsOneWidget);
+  });
 }

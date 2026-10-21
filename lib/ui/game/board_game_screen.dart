@@ -247,7 +247,10 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
         if (!didPop && lost) _exit(retry: false); // Android back on the lose overlay = Map
       },
       child: Scaffold(
-        appBar: AppBar(title: Text(t.level(widget.args.level.id)), centerTitle: true),
+        appBar: AppBar(
+          title: Text(widget.args.isDaily ? t.dailyTitle : t.level(widget.args.level.id)),
+          centerTitle: true,
+        ),
         body: SafeArea(
           child: c == null
               ? (_error ? _errorView(t) : _loadingView(t))

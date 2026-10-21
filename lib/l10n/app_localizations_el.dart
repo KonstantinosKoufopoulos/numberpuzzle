@@ -348,4 +348,26 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get settingsPrivacy => 'Απόρρητο και διαφημίσεις';
+
+  @override
+  String get dailyTitle => 'Ημερήσιο παζλ';
+
+  @override
+  String dailyStreak(int n) {
+    return '♨ $n ημέρες σερί';
+  }
+
+  @override
+  String dailyBest(int n) {
+    return 'Καλύτερο: $n';
+  }
+
+  @override
+  String get dailyPlay => 'Παίξε το σημερινό';
+
+  @override
+  String get dailyDone => 'Ολοκληρώθηκε για σήμερα ✓';
+
+  @override
+  String get dailyLegend => 'Γκρι = ολοκληρώθηκε · Μαύρο = σήμερα';
 }

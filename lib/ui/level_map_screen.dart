@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../ads/ad_policy.dart';
 import '../ads/ad_service.dart';
+import '../daily/daily.dart';
 import '../engine/level.dart';
 import '../game/game_result.dart';
 import '../l10n/app_localizations.dart';
@@ -12,6 +13,7 @@ import '../settings/settings_controller.dart';
 import '../storage/progress_store.dart';
 import 'intro_cards.dart';
 import 'level_start_sheet.dart';
+import 'daily_screen.dart';
 import 'result_screens.dart';
 import 'settings_screen.dart';
 import 'theme.dart';
@@ -29,6 +31,7 @@ class LevelMapScreen extends StatefulWidget {
     required this.progress,
     required this.gameBuilder,
     this.settings,
+    this.clock = DateTime.now,
   });
 
   final AdService ads;
@@ -36,6 +39,9 @@ class LevelMapScreen extends StatefulWidget {
   final ProgressController progress;
   final GameScreenBuilder gameBuilder;
   final SettingsController? settings;
+
+  /// Local clock (daily challenge day).
+  final DateTime Function() clock;
 
   @override
   State<LevelMapScreen> createState() => _LevelMapScreenState();
@@ -53,6 +59,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
     super.initState();
     widget.progress.addListener(_onProgress);
     if (!widget.progress.isLoaded) widget.progress.load();
+    _loadDaily();
   }
 
   @override
@@ -73,6 +80,28 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
   void _scrollToCurrent() {
     final ctx = _currentKey.currentContext;
     if (ctx != null) Scrollable.ensureVisible(ctx, alignment: 0.5, duration: const Duration(milliseconds: 300));
+  }
+
+  DailyState? _daily;
+
+  Future<void> _loadDaily() async {
+    final s = await DailyStore().load();
+    if (mounted) setState(() => _daily = s);
+  }
+
+  Future<void> _openDaily(List<Level> levels) async {
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      settings: const RouteSettings(name: '/daily'),
+      builder: (_) => DailyScreen(
+        ads: widget.ads,
+        pack: levels,
+        progress: widget.progress,
+        gameBuilder: widget.gameBuilder,
+        clock: widget.clock,
+        onRequestRewarded: _requestRewarded,
+      ),
+    ));
+    await _loadDaily();
   }
 
   void _openSettings() {
@@ -192,9 +221,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                       key: const Key('dailyEntry'),
                       icon: Icons.local_fire_department,
                       label: t.daily,
-                      sub: t.mapDailyStreak(0),
-                      onTap: () => ScaffoldMessenger.of(context)
-                          .showSnackBar(SnackBar(content: Text(t.comingSoon))),
+                      sub: t.mapDailyStreak(_daily?.streak(widget.clock()) ?? 0),
+                      onTap: () => _openDaily(levels),
                     ),
                   ),
                   const SizedBox(width: 12),

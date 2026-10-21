@@ -649,6 +649,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Privacy & ads'**
   String get settingsPrivacy;
+
+  /// No description provided for @dailyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily puzzle'**
+  String get dailyTitle;
+
+  /// No description provided for @dailyStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'♨ {n}-day streak'**
+  String dailyStreak(int n);
+
+  /// No description provided for @dailyBest.
+  ///
+  /// In en, this message translates to:
+  /// **'Best: {n}'**
+  String dailyBest(int n);
+
+  /// No description provided for @dailyPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play today\'s'**
+  String get dailyPlay;
+
+  /// No description provided for @dailyDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done for today ✓'**
+  String get dailyDone;
+
+  /// No description provided for @dailyLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Grey = completed · Dark = today'**
+  String get dailyLegend;
 }
 
 class _AppLocalizationsDelegate

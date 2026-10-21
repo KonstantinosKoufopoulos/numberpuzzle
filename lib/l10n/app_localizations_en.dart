@@ -341,4 +341,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsPrivacy => 'Privacy & ads';
+
+  @override
+  String get dailyTitle => 'Daily puzzle';
+
+  @override
+  String dailyStreak(int n) {
+    return '♨ $n-day streak';
+  }
+
+  @override
+  String dailyBest(int n) {
+    return 'Best: $n';
+  }
+
+  @override
+  String get dailyPlay => 'Play today\'s';
+
+  @override
+  String get dailyDone => 'Done for today ✓';
+
+  @override
+  String get dailyLegend => 'Grey = completed · Dark = today';
 }
