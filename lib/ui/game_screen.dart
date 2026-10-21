@@ -32,7 +32,7 @@ class _StubGameScreenState extends State<StubGameScreen> {
           Text(t.goals, style: Theme.of(context).textTheme.titleLarge),
           for (final g in l.goals) Text(goalText(t, g)),
           const SizedBox(height: 8),
-          Text('${l.columns}×${l.rows} · +${widget.args.extraAddNumbers}'),
+          Text('${l.columns}×${l.rows}'),
           const SizedBox(height: 16),
           Row(children: [
             Expanded(child: Text(t.debugBoosters(_boosters))),

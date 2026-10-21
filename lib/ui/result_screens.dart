@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../ads/ad_policy.dart';
 import '../l10n/app_localizations.dart';
 import 'theme.dart';
 
 enum WinAction { next, map }
 
-enum LoseAction { retry, map, rewardedContinue }
+enum LoseAction { retry, map }
 
 /// Win screen (wireframe 09). Pops with [WinAction]. No ad is shown here;
 /// the interstitial hook runs only after the player taps Next.
@@ -77,35 +76,16 @@ class WinScreen extends StatelessWidget {
   }
 }
 
-/// Lose screen (wireframe 13). Pops with [LoseAction]. The rewarded button
-/// only reports success from the SDK's onUserEarnedReward callback.
-class LoseScreen extends StatefulWidget {
-  const LoseScreen({super.key, required this.levelId, required this.rewarded});
+/// Lose screen (wireframe 13), shown after the player exits the game's lose
+/// overlay. Pops with [LoseAction]. The rewarded continue lives only in the
+/// game screen's lose overlay (docs/m2-seam.md).
+class LoseScreen extends StatelessWidget {
+  const LoseScreen({super.key, required this.levelId});
   final int levelId;
-  final RewardedController rewarded;
-
-  @override
-  State<LoseScreen> createState() => _LoseScreenState();
-}
-
-class _LoseScreenState extends State<LoseScreen> {
-  bool _noAd = false;
-
-  void _tapReward() {
-    var earned = false;
-    final outcome = widget.rewarded.onUserTap(
-      grantReward: () => earned = true, // ONLY from SDK callback
-      onClosed: () {
-        if (mounted && earned) Navigator.pop(context, LoseAction.rewardedContinue);
-      },
-    );
-    if (outcome == RewardedOutcome.noAdAvailable) setState(() => _noAd = true);
-  }
 
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    final noAd = _noAd || widget.rewarded.showNoAdText;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (did, _) {
@@ -129,16 +109,6 @@ class _LoseScreenState extends State<LoseScreen> {
                       key: const Key('loseRetry'),
                       onPressed: () => Navigator.pop(context, LoseAction.retry),
                       child: Text(t.loseRetry),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      key: const Key('loseReward'),
-                      icon: const Icon(Icons.play_arrow),
-                      onPressed: noAd ? null : _tapReward,
-                      label: Text(noAd ? t.noAdAvailable : t.loseReward),
                     ),
                   ),
                   const SizedBox(height: 12),

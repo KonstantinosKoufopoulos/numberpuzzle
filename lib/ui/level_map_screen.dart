@@ -85,7 +85,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
     return done.future;
   }
 
-  Future<void> _play(List<Level> levels, Level level, {bool skipStart = false, int extraAdd = 0}) async {
+  Future<void> _play(List<Level> levels, Level level, {bool skipStart = false}) async {
     final pc = widget.progress;
     if (!skipStart && !await showLevelStartSheet(context, level)) return;
     if (!mounted) return;
@@ -110,7 +110,6 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
         level: level,
         ads: widget.ads,
         boosters: Map.unmodifiable(pc.progress.boosters),
-        extraAddNumbers: extraAdd,
         onRequestRewarded: _requestRewarded,
       ),
       builder: widget.gameBuilder,
@@ -139,14 +138,12 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
     } else {
       final action = await Navigator.of(context).push(MaterialPageRoute<LoseAction>(
         settings: const RouteSettings(name: '/lose'),
-        builder: (_) => LoseScreen(levelId: level.id, rewarded: RewardedController(widget.ads.rewardedSource)),
+        builder: (_) => LoseScreen(levelId: level.id),
       ));
       if (!mounted) return;
       switch (action) {
         case LoseAction.retry:
           await _play(levels, level, skipStart: true);
-        case LoseAction.rewardedContinue:
-          await _play(levels, level, skipStart: true, extraAdd: extraAdd + 1);
         case LoseAction.map || null:
           break;
       }

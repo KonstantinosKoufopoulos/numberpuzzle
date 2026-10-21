@@ -72,8 +72,7 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
         c = _controller(saved.initialBoard, saved.state, saved.spent, tutorialDone);
       } else {
         final board = await (widget.boards ?? BoardGameScreen.defaultBoards).boardFor(level);
-        var s = GameState.forLevel(level, board);
-        if (widget.args.extraAddNumbers > 0) s = s.withExtraAddNumbers(widget.args.extraAddNumbers);
+        final s = GameState.forLevel(level, board);
         c = _controller(board, s, const {}, tutorialDone);
       }
       if (!mounted) return c.dispose();

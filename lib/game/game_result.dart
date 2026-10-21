@@ -73,7 +73,6 @@ class GameArgs {
     required this.ads,
     required this.boosters,
     this.isDaily = false,
-    this.extraAddNumbers = 0,
     this.onRequestRewarded,
   });
 
@@ -83,9 +82,6 @@ class GameArgs {
   /// Booster inventory at level start (read-only snapshot).
   final Map<String, int> boosters;
   final bool isDaily;
-
-  /// Extra "Add numbers" granted by a rewarded ad on the lose screen.
-  final int extraAddNumbers;
 
   /// In-level rewarded request (game lose overlay "+1 Add numbers ▶").
   /// Resolves true only after the SDK reported the reward; null/false = no ad.

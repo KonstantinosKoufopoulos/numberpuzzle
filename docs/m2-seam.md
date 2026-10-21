@@ -22,7 +22,7 @@ class GameArgs {
   final AdService ads;               // for in-level rewarded buttons (booster at 0 → ▶)
   final Map<String, int> boosters;   // inventory snapshot: 'hammer','swap','hint'
   final bool isDaily;                // always false in M2
-  final int extraAddNumbers;         // +N "Add numbers" granted by lose-screen rewarded ad
+  final Future<bool> Function()? onRequestRewarded; // in-game lose overlay continue
 }
 
 typedef GameScreenBuilder = Widget Function(BuildContext context, GameArgs args);
@@ -68,10 +68,9 @@ map node / Play N → level-start sheet (goals, star rule, Start) → gift card
 card (first time `introduces` is seen; key `intro:<id>`) → `GameRoute` →
 - won: save best stars + unlock next → WinScreen → Next ⇒ interstitial hook →
   next level's start sheet; Map ⇒ map.
-- lost: LoseScreen → Play again (restarts, no start sheet) / ▶ +1 Add numbers
-  (only after `onUserEarnedReward`; restarts the level with
-  `extraAddNumbers += 1`) / Map. No ad loaded ⇒ «Δεν υπάρχει διαθέσιμη
-  διαφήμιση τώρα».
+- lost (player exited the game's lose overlay): LoseScreen → Play again
+  (restarts, no start sheet) / Map. The rewarded +1 Add numbers continue
+  lives only in the game's lose overlay (see Continue flow).
 
 ## Progress (lib/storage/progress_store.dart)
 
@@ -88,4 +87,4 @@ unlocked never decreases. `ProgressController` (ChangeNotifier) wraps it.
 - The overlay's «+1 Add numbers ▶» button calls `onRequestRewarded()`. On `true` (reward callback fired) the game grants **+1 Add numbers on the SAME board** (same cells, same moves, same timer/stars state) and resumes play. On `false` it stays on the overlay.
 - `GameResult.lose` is returned **only when the player exits** from the overlay (Retry/Map). Continue never pops the route.
 - The +1 doesn't count toward `boostersUsed` / stars (Add numbers never do).
-- The shell implements `onRequestRewarded` via `AdService.showRewarded()`. `extraAddNumbers` and the shell lose-screen rewarded button get removed when `m2-gameplay` merges.
+- The shell implements `onRequestRewarded` via `AdService.showRewarded()`. `extraAddNumbers` and the shell lose-screen rewarded button have been removed (done in the m2-gameplay merge).

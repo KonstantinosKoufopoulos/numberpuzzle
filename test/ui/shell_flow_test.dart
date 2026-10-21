@@ -8,6 +8,7 @@ import 'package:numberpuzzle/ui/game_screen.dart';
 import 'package:numberpuzzle/ads/ad_policy.dart';
 import 'package:numberpuzzle/ads/ad_service.dart';
 import 'package:numberpuzzle/engine/level.dart';
+import 'package:numberpuzzle/game/game_result.dart';
 import 'package:numberpuzzle/levels/level_repository.dart';
 import 'package:numberpuzzle/storage/progress_store.dart';
 import 'package:numberpuzzle/ui/app.dart';
@@ -139,13 +140,12 @@ void main() {
     expect(find.text('Level 2'), findsWidgets);
   });
 
-  testWidgets('lose → no-ad text when unavailable; retry restarts; map returns', (tester) async {
+  testWidgets('lose → retry restarts; map returns', (tester) async {
     final pc = await pumpApp(tester, FakeAds(rewarded: FakeRewarded(loaded: false)), locale: 'el');
     await startLevel(tester);
     await tester.tap(find.byKey(const Key('debugLose')));
     await tester.pumpAndSettle();
     expect(find.text('Τέλος κινήσεων'), findsOneWidget);
-    expect(find.text('Δεν υπάρχει διαθέσιμη διαφήμιση τώρα'), findsOneWidget);
     await tester.tap(find.byKey(const Key('loseRetry')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('debugWin')), findsOneWidget);
@@ -157,19 +157,43 @@ void main() {
     expect(pc.progress.stars, isEmpty);
   });
 
-  testWidgets('lose → rewarded only continues when reward callback fires', (tester) async {
-    final src = FakeRewarded(earn: false);
-    await pumpApp(tester, FakeAds(rewarded: src));
+  testWidgets('shell lose screen has no rewarded button (continue lives in the game overlay)', (tester) async {
+    await pumpApp(tester, FakeAds(rewarded: FakeRewarded()));
     await startLevel(tester);
     await tester.tap(find.byKey(const Key('debugLose')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('loseReward')));
-    await tester.pumpAndSettle();
-    expect(find.text('Out of moves'), findsOneWidget, reason: 'closed without reward');
+    expect(find.byKey(const Key('loseRetry')), findsOneWidget);
+    expect(find.byKey(const Key('loseReward')), findsNothing);
+  });
+
+  testWidgets('onRequestRewarded resolves true only when the reward callback fires', (tester) async {
+    final src = FakeRewarded(earn: false);
+    GameArgs? args;
+    tester.view.physicalSize = const Size(1080, 2340);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    tester.platformDispatcher.localesTestValue = [const Locale('en')];
+    addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+    SharedPreferences.setMockInitialValues({});
+    final pc = ProgressController(ProgressStore());
+    await tester.runAsync(pc.load);
+    await tester.pumpWidget(NumberPuzzleApp(
+      ads: FakeAds(rewarded: src),
+      progress: pc,
+      levels: FileLevels(),
+      gameBuilder: (c, a) {
+        args = a;
+        return StubGameScreen.builder(c, a);
+      },
+    ));
+    await settleMap(tester);
+    await startLevel(tester);
+    expect(args!.onRequestRewarded, isNotNull);
+    expect(await args!.onRequestRewarded!(), isFalse, reason: 'closed without reward');
     src.earn = true;
-    await tester.tap(find.byKey(const Key('loseReward')));
-    await tester.pumpAndSettle();
-    expect(find.text('5×4 · +1'), findsOneWidget);
+    expect(await args!.onRequestRewarded!(), isTrue);
+    src.loaded = false;
+    expect(await args!.onRequestRewarded!(), isFalse, reason: 'no ad loaded');
   });
 
   testWidgets('intro card shows only the first time (persisted)', (tester) async {
