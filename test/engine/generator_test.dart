@@ -80,13 +80,20 @@ void main() {
     expect(generated, hasLength(30));
   });
 
-  test('CI rules: first-pair rule, goal-minPairs, greedy wins for UX levels', () {
+  test('CI rules: first-pair rule, star spacing, goal-minPairs, greedy wins for UX levels', () {
     expect(SeededBoardGenerator.kGoalMinPairsTargets, {7: 5, 8: 5, 15: 4, 25: 4, 22: 7});
+    // Level 13 (grass 10 + number 10) is intentionally excluded: no seed
+    // within 50 seeds / 3M nodes passes the greedy check. To be checked in
+    // playtest by Takaros.
+    expect(SeededBoardGenerator.kRequireGreedyWinLevels, {1, 2, 3, 4, 5, 6, 15, 25});
+    expect(SeededBoardGenerator.kRequireGreedyWinLevels.contains(13), isFalse);
     for (final l in pack.levels.where((l) => generated.containsKey(l.id))) {
       final g = generated[l.id]!;
       expect(g.latePlacement, isTrue, reason: 'level ${l.id}');
       // No star/grass in any valid first pair.
       expect(SeededBoardGenerator.noFirstPairCollect(g.board), isTrue, reason: 'level ${l.id}');
+      // Stars at Chebyshev distance >= 2 (no 8-neighbour adjacent stars).
+      expect(SeededBoardGenerator.starsSpaced(g.board), isTrue, reason: 'level ${l.id}: adjacent stars');
       for (final (a, b) in fastValidPairs(g.board)) {
         expect(g.board[a].item == null && !g.board[a].grass, isTrue);
         expect(g.board[b].item == null && !g.board[b].grass, isTrue);
