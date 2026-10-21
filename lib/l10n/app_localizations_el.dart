@@ -345,4 +345,7 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get settingsTutorialDone =>
       'Ο οδηγός θα εμφανιστεί ξανά στο επίπεδο 1.';
+
+  @override
+  String get settingsPrivacy => 'Απόρρητο και διαφημίσεις';
 }

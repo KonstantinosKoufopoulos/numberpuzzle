@@ -338,4 +338,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsTutorialDone => 'The tutorial will play again on level 1.';
+
+  @override
+  String get settingsPrivacy => 'Privacy & ads';
 }

@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
 
+import '../ads/ad_service.dart';
 import '../l10n/app_localizations.dart';
 import '../settings/settings_controller.dart';
 import '../storage/game_save_store.dart';
+import 'privacy_options_entry.dart';
 import 'theme.dart';
 import 'tokens.dart';
 
 /// Settings (wireframe 11): language, theme, sound, haptics, tutorial replay.
-/// Export/import and privacy & consent belong to the ads/export work (M3).
+/// Privacy & ads (UMP options, m3-ads) is last; export/import is m3-ads work.
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key, required this.settings, this.saves});
+  const SettingsScreen({super.key, required this.settings, this.ads, this.saves});
 
   final SettingsController settings;
   final GameSaveStore? saves;
+
+  /// For the UMP privacy-options entry (shown only when UMP requires it).
+  final AdService? ads;
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +78,7 @@ class SettingsScreen extends StatelessWidget {
                 child: Text('${t.settingsTutorialReplay} →'),
               ),
             ),
+            if (ads != null) PrivacyOptionsEntry(ads: ads!, label: t.settingsPrivacy),
           ],
         ),
       ),

@@ -10,6 +10,10 @@ import 'package:numberpuzzle/settings/settings_controller.dart';
 import 'package:numberpuzzle/storage/game_save_store.dart';
 import 'package:numberpuzzle/storage/progress_store.dart';
 import 'package:numberpuzzle/ui/app.dart';
+import 'package:numberpuzzle/ui/theme.dart';
+import 'package:numberpuzzle/ui/settings_screen.dart';
+import 'package:numberpuzzle/l10n/app_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _Levels extends LevelRepository {
@@ -112,5 +116,33 @@ void main() {
     await tester.pumpAndSettle();
     expect(await GameSaveStore().tutorialDone(), isFalse);
     expect(find.text('Ο οδηγός θα εμφανιστεί ξανά στο επίπεδο 1.'), findsOneWidget);
+  });
+
+  testWidgets('Privacy & ads entry: last row, only when UMP requires it', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final ads = AdService.disabled();
+    final sc = SettingsController()..isLoaded = true;
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('el'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('el'), Locale('en')],
+        theme: lightTheme,
+        home: SettingsScreen(settings: sc, ads: ads),
+      ),
+    );
+    expect(find.byKey(const Key('privacyOptions')), findsNothing);
+    ads.privacyOptionsRequired.value = true;
+    await tester.pumpAndSettle();
+    expect(find.text('Απόρρητο και διαφημίσεις'), findsOneWidget);
+    final privacyY = tester.getTopLeft(find.byKey(const Key('privacyOptions'))).dy;
+    for (final k in ['settingsLanguage', 'settingsTheme', 'settingsSound', 'settingsHaptics', 'settingsTutorial']) {
+      expect(tester.getTopLeft(find.byKey(Key(k))).dy, lessThan(privacyY), reason: k);
+    }
   });
 }

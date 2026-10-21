@@ -90,5 +90,6 @@
   "settingsHaptics": "Δόνηση",
   "settingsTutorial": "Οδηγός (tutorial)",
   "settingsTutorialReplay": "Επανάληψη",
-  "settingsTutorialDone": "Ο οδηγός θα εμφανιστεί ξανά στο επίπεδο 1."
+  "settingsTutorialDone": "Ο οδηγός θα εμφανιστεί ξανά στο επίπεδο 1.",
+  "settingsPrivacy": "Απόρρητο και διαφημίσεις"
 }

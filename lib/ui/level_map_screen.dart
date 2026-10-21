@@ -80,7 +80,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
     if (settings == null) return;
     Navigator.of(context).push(MaterialPageRoute<void>(
       settings: const RouteSettings(name: '/settings'),
-      builder: (_) => SettingsScreen(settings: settings),
+      builder: (_) => SettingsScreen(settings: settings, ads: widget.ads),
     ));
   }
 

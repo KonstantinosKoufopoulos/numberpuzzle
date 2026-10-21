@@ -320,5 +320,6 @@
   "settingsHaptics": "Haptics",
   "settingsTutorial": "Tutorial",
   "settingsTutorialReplay": "Replay",
-  "settingsTutorialDone": "The tutorial will play again on level 1."
+  "settingsTutorialDone": "The tutorial will play again on level 1.",
+  "settingsPrivacy": "Privacy & ads"
 }

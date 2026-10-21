@@ -643,6 +643,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The tutorial will play again on level 1.'**
   String get settingsTutorialDone;
+
+  /// No description provided for @settingsPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy & ads'**
+  String get settingsPrivacy;
 }
 
 class _AppLocalizationsDelegate
