@@ -104,19 +104,17 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
       if (!mounted) return;
     }
 
-    final result = await Navigator.of(context).push(
-      GameRoute(
-        levelId: level.id,
-        args: GameArgs(
-          level: level,
-          ads: widget.ads,
-          boosters: Map.unmodifiable(pc.progress.boosters),
-          extraAddNumbers: extraAdd,
-          onRequestRewarded: _requestRewarded,
-        ),
-        builder: widget.gameBuilder,
+    final result = await Navigator.of(context).push(GameRoute(
+      levelId: level.id,
+      args: GameArgs(
+        level: level,
+        ads: widget.ads,
+        boosters: Map.unmodifiable(pc.progress.boosters),
+        extraAddNumbers: extraAdd,
+        onRequestRewarded: _requestRewarded,
       ),
-    );
+      builder: widget.gameBuilder,
+    ));
     if (result == null || !mounted) return; // abandoned
     if (result.boostersSpent.isNotEmpty) await pc.spendBoosters(result.boostersSpent);
     if (!mounted) return;
@@ -127,12 +125,10 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
     if (result.won) {
       await pc.recordWin(level.id, result.starsEarned);
       if (!mounted) return;
-      final action = await Navigator.of(context).push(
-        MaterialPageRoute<WinAction>(
-          settings: const RouteSettings(name: '/win'),
-          builder: (_) => WinScreen(levelId: level.id, stars: result.starsEarned, hasNext: next != null),
-        ),
-      );
+      final action = await Navigator.of(context).push(MaterialPageRoute<WinAction>(
+        settings: const RouteSettings(name: '/win'),
+        builder: (_) => WinScreen(levelId: level.id, stars: result.starsEarned, hasNext: next != null),
+      ));
       if (!mounted) return;
       if (action == WinAction.next && next != null) {
         // The ONLY interstitial moment: win screen left via Next. Policy
@@ -141,12 +137,10 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
         if (mounted) await _play(levels, next);
       }
     } else {
-      final action = await Navigator.of(context).push(
-        MaterialPageRoute<LoseAction>(
-          settings: const RouteSettings(name: '/lose'),
-          builder: (_) => LoseScreen(levelId: level.id, rewarded: RewardedController(widget.ads.rewardedSource)),
-        ),
-      );
+      final action = await Navigator.of(context).push(MaterialPageRoute<LoseAction>(
+        settings: const RouteSettings(name: '/lose'),
+        builder: (_) => LoseScreen(levelId: level.id, rewarded: RewardedController(widget.ads.rewardedSource)),
+      ));
       if (!mounted) return;
       switch (action) {
         case LoseAction.retry:
@@ -183,29 +177,28 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _EntryCard(
-                        key: const Key('dailyEntry'),
-                        icon: Icons.local_fire_department,
-                        label: t.daily,
-                        sub: t.mapDailyStreak(0),
-                        onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.comingSoon))),
-                      ),
+                child: Row(children: [
+                  Expanded(
+                    child: _EntryCard(
+                      key: const Key('dailyEntry'),
+                      icon: Icons.local_fire_department,
+                      label: t.daily,
+                      sub: t.mapDailyStreak(0),
+                      onTap: () => ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(content: Text(t.comingSoon))),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _EntryCard(
-                        key: const Key('classicEntry'),
-                        icon: Icons.grid_view_rounded,
-                        label: t.classic,
-                        sub: t.mapClassicContinue,
-                        onTap: () => _play(levels, currentLevel),
-                      ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _EntryCard(
+                      key: const Key('classicEntry'),
+                      icon: Icons.grid_view_rounded,
+                      label: t.classic,
+                      sub: t.mapClassicContinue,
+                      onTap: () => _play(levels, currentLevel),
                     ),
-                  ],
-                ),
+                  ),
+                ]),
               ),
               Expanded(
                 child: SingleChildScrollView(
@@ -224,8 +217,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                               state: l.id == current
                                   ? NodeState.current
                                   : l.id < current
-                                  ? NodeState.unlocked
-                                  : NodeState.locked,
+                                      ? NodeState.unlocked
+                                      : NodeState.locked,
                               stars: widget.progress.progress.starsFor(l.id),
                               label: _nodeLabel(t, l),
                               onTap: () => _play(levels, l),
@@ -238,20 +231,18 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-                child: Column(
-                  children: [
-                    Text(t.mapWorld(levels.length, done), key: const Key('worldProgress')),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        key: const Key('playCurrent'),
-                        onPressed: () => _play(levels, currentLevel),
-                        child: Text(t.mapPlay(current)),
-                      ),
+                child: Column(children: [
+                  Text(t.mapWorld(levels.length, done), key: const Key('worldProgress')),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      key: const Key('playCurrent'),
+                      onPressed: () => _play(levels, currentLevel),
+                      child: Text(t.mapPlay(current)),
                     ),
-                  ],
-                ),
+                  ),
+                ]),
               ),
             ],
           );
@@ -278,41 +269,27 @@ class _EntryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    child: InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
                 Icon(icon, size: 20),
                 const SizedBox(width: 6),
-                Flexible(
-                  child: Text(label, style: Theme.of(context).textTheme.titleLarge, overflow: TextOverflow.ellipsis),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(sub, style: Theme.of(context).textTheme.bodySmall),
-          ],
+                Flexible(child: Text(label, style: Theme.of(context).textTheme.titleLarge, overflow: TextOverflow.ellipsis)),
+              ]),
+              const SizedBox(height: 4),
+              Text(sub, style: Theme.of(context).textTheme.bodySmall),
+            ]),
+          ),
         ),
-      ),
-    ),
-  );
+      );
 }
 
 class _LevelNode extends StatelessWidget {
-  const _LevelNode({
-    super.key,
-    required this.level,
-    required this.state,
-    required this.stars,
-    required this.onTap,
-    this.label,
-  });
+  const _LevelNode({super.key, required this.level, required this.state, required this.stars, required this.onTap, this.label});
   final Level level;
   final NodeState state;
   final int stars;
@@ -328,42 +305,31 @@ class _LevelNode extends StatelessWidget {
     final size = current ? 64.0 : 54.0;
     return Semantics(
       label: 'level-${level.id}-${state.name}-$stars',
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          GestureDetector(
-            onTap: locked ? null : onTap,
-            child: Container(
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: locked ? p.cleared : (current ? cs.primary : cs.surface),
-                border: Border.all(color: locked ? p.cellBorder : cs.primary, width: current ? 4 : 2),
-              ),
-              alignment: Alignment.center,
-              child: locked
-                  ? Icon(Icons.lock, size: 20, color: p.textMuted, key: Key('lock-${level.id}'))
-                  : Text(
-                      '${level.id}',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: current ? cs.onPrimary : cs.onSurface,
-                      ),
-                    ),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        GestureDetector(
+          onTap: locked ? null : onTap,
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: locked ? p.cleared : (current ? cs.primary : cs.surface),
+              border: Border.all(color: locked ? p.cellBorder : cs.primary, width: current ? 4 : 2),
             ),
+            alignment: Alignment.center,
+            child: locked
+                ? Icon(Icons.lock, size: 20, color: p.textMuted, key: Key('lock-${level.id}'))
+                : Text('${level.id}',
+                    style: TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.w800, color: current ? cs.onPrimary : cs.onSurface)),
           ),
-          if (!locked && stars > 0)
-            Text(
-              '★' * stars + '☆' * (3 - stars),
-              key: Key('stars-${level.id}'),
-              style: TextStyle(color: p.star, fontSize: 14),
-            )
-          else if (label != null)
-            Text(label!, style: Theme.of(context).textTheme.bodySmall),
-        ],
-      ),
+        ),
+        if (!locked && stars > 0)
+          Text('★' * stars + '☆' * (3 - stars),
+              key: Key('stars-${level.id}'), style: TextStyle(color: p.star, fontSize: 14))
+        else if (label != null)
+          Text(label!, style: Theme.of(context).textTheme.bodySmall),
+      ]),
     );
   }
 }

@@ -10,8 +10,7 @@ import 'package:test/test.dart';
 
 void main() {
   final pack = LevelPack.fromJson(
-    jsonDecode(File('assets/levels/levels.json').readAsStringSync()) as Map<String, dynamic>,
-  );
+      jsonDecode(File('assets/levels/levels.json').readAsStringSync()) as Map<String, dynamic>);
 
   test('pack has 30 levels and validates', () {
     expect(pack.levels, hasLength(30));
@@ -29,10 +28,7 @@ void main() {
   }
 
   test('introduces flags', () {
-    final m = {
-      for (final l in pack.levels)
-        if (l.introduces != null) l.introduces!: l.id,
-    };
+    final m = {for (final l in pack.levels) if (l.introduces != null) l.introduces!: l.id};
     expect(m, {'stars': 7, 'grass': 11, 'stone': 16, 'ice': 21, 'slime': 26});
   });
 
@@ -43,12 +39,8 @@ void main() {
 
   test('defaults and derived layers', () {
     final l = Level.fromJson({
-      'id': 1,
-      'columns': 5,
-      'rows': 4,
-      'goals': [
-        {'type': 'star', 'count': 3},
-      ],
+      'id': 1, 'columns': 5, 'rows': 4,
+      'goals': [{'type': 'star', 'count': 3}],
     });
     expect(l.addNumbersLimit, kDefaultAddNumbersLimit);
     expect(l.layers.stars, 3);
@@ -57,61 +49,29 @@ void main() {
 
   group('validation errors', () {
     Level mk(Map<String, dynamic> extra) => Level.fromJson({
-      'id': 1,
-      'columns': 6,
-      'rows': 6,
-      'goals': [
-        {'type': 'number', 'value': 5, 'count': 4},
-      ],
-      ...extra,
-    });
+          'id': 1, 'columns': 6, 'rows': 6,
+          'goals': [{'type': 'number', 'value': 5, 'count': 4}],
+          ...extra,
+        });
     test('bad columns', () => expect(mk({'columns': 12}).validate(), isNotEmpty));
     test('number goal without value', () {
-      expect(
-        mk({
-          'goals': [
-            {'type': 'number', 'count': 3},
-          ],
-        }).validate(),
-        isNotEmpty,
-      );
+      expect(mk({'goals': [{'type': 'number', 'count': 3}]}).validate(), isNotEmpty);
     });
     test('breakIce more than ice', () {
       expect(
-        mk({
-          'goals': [
-            {'type': 'breakIce', 'count': 3},
-          ],
-          'layers': {
-            'ice': {'count': 2, 'hpMin': 1},
-          },
-        }).validate(),
-        isNotEmpty,
-      );
+          mk({'goals': [{'type': 'breakIce', 'count': 3}], 'layers': {'ice': {'count': 2, 'hpMin': 1}}})
+              .validate(),
+          isNotEmpty);
     });
     test('ice hp 3', () {
-      expect(
-        mk({
-          'layers': {
-            'ice': {'count': 2, 'hpMin': 1, 'hpMax': 3},
-          },
-        }).validate(),
-        isNotEmpty,
-      );
+      expect(mk({'layers': {'ice': {'count': 2, 'hpMin': 1, 'hpMax': 3}}}).validate(), isNotEmpty);
     });
     test('unknown introduces / gift', () {
       expect(mk({'introduces': 'lava'}).validate(), isNotEmpty);
       expect(mk({'gift': 'bomb'}).validate(), isNotEmpty);
     });
     test('unknown goal type throws', () {
-      expect(
-        () => mk({
-          'goals': [
-            {'type': 'lava', 'count': 1},
-          ],
-        }),
-        throwsFormatException,
-      );
+      expect(() => mk({'goals': [{'type': 'lava', 'count': 1}]}), throwsFormatException);
     });
     test('schemaVersion mismatch', () {
       expect(() => LevelPack.fromJson({'schemaVersion': 2, 'levels': []}), throwsFormatException);
@@ -125,26 +85,10 @@ void main() {
         Goal(GoalType.pairsSame, 1),
         Goal(GoalType.pairsTen, 1),
       ]);
-      p.onPair(
-        applyPair(
-          Board.fromRows([
-            [5, 5, 1],
-          ]),
-          0,
-          1,
-        ),
-      );
+      p.onPair(applyPair(Board.fromRows([[5, 5, 1]]), 0, 1));
       expect(p.done, [2, 1, 0]);
       expect(p.isComplete, isFalse);
-      p.onPair(
-        applyPair(
-          Board.fromRows([
-            [3, 7, 1],
-          ]),
-          0,
-          1,
-        ),
-      );
+      p.onPair(applyPair(Board.fromRows([[3, 7, 1]]), 0, 1));
       expect(p.isComplete, isTrue);
     });
   });

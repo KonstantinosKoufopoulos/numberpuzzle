@@ -29,8 +29,7 @@ class FakeRewarded implements RewardedAdSource {
 /// Reads the real bundled pack from disk; avoids rootBundle caching across tests.
 class FileLevels extends LevelRepository {
   static final LevelPack pack = LevelPack.fromJson(
-    jsonDecode(File(LevelRepository.assetPath).readAsStringSync()) as Map<String, dynamic>,
-  );
+      jsonDecode(File(LevelRepository.assetPath).readAsStringSync()) as Map<String, dynamic>);
   @override
   Future<LevelPack> load() => SynchronousFuture(pack);
 }
@@ -45,12 +44,8 @@ class FakeAds extends AdService {
   RewardedAdSource get rewardedSource => rewarded ?? super.rewardedSource;
 }
 
-Future<ProgressController> pumpApp(
-  WidgetTester tester,
-  AdService ads, {
-  Map<String, Object> prefs = const {},
-  String locale = 'en',
-}) async {
+Future<ProgressController> pumpApp(WidgetTester tester, AdService ads,
+    {Map<String, Object> prefs = const {}, String locale = 'en'}) async {
   tester.view.physicalSize = const Size(1080, 2340);
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
@@ -59,9 +54,7 @@ Future<ProgressController> pumpApp(
   SharedPreferences.setMockInitialValues(prefs);
   final pc = ProgressController(ProgressStore());
   await tester.runAsync(pc.load);
-  await tester.pumpWidget(
-    NumberPuzzleApp(ads: ads, progress: pc, levels: FileLevels(), gameBuilder: StubGameScreen.builder),
-  );
+  await tester.pumpWidget(NumberPuzzleApp(ads: ads, progress: pc, levels: FileLevels(), gameBuilder: StubGameScreen.builder));
   await settleMap(tester);
   return pc;
 }
@@ -94,11 +87,9 @@ void main() {
   });
 
   testWidgets('map: shows best stars, unlock up to current, scrolls to current', (tester) async {
-    await pumpApp(
-      tester,
-      FakeAds(),
-      prefs: {ProgressStore.key: '{"v":2,"stars":{"1":3,"2":2,"3":1},"unlocked":4,"seenIntros":[],"boosters":{}}'},
-    );
+    await pumpApp(tester, FakeAds(), prefs: {
+      ProgressStore.key: '{"v":2,"stars":{"1":3,"2":2,"3":1},"unlocked":4,"seenIntros":[],"boosters":{}}',
+    });
     expect(find.text('Play 4'), findsOneWidget);
     expect(find.text('★★★'), findsOneWidget);
     expect(find.text('★★☆'), findsOneWidget);
@@ -108,11 +99,9 @@ void main() {
   });
 
   testWidgets('map: deep progress auto-scrolls so current node 25 is on screen', (tester) async {
-    await pumpApp(
-      tester,
-      FakeAds(),
-      prefs: {ProgressStore.key: '{"v":2,"stars":{},"unlocked":25,"seenIntros":[],"boosters":{}}'},
-    );
+    await pumpApp(tester, FakeAds(), prefs: {
+      ProgressStore.key: '{"v":2,"stars":{},"unlocked":25,"seenIntros":[],"boosters":{}}',
+    });
     expect(find.text('25'), findsOneWidget);
     expect(tester.getCenter(find.text('25')).dy, lessThan(2340 / 3));
   });
@@ -184,11 +173,9 @@ void main() {
   });
 
   testWidgets('intro card shows only the first time (persisted)', (tester) async {
-    final pc = await pumpApp(
-      tester,
-      FakeAds(),
-      prefs: {ProgressStore.key: '{"v":2,"stars":{},"unlocked":7,"seenIntros":[],"boosters":{}}'},
-    );
+    final pc = await pumpApp(tester, FakeAds(), prefs: {
+      ProgressStore.key: '{"v":2,"stars":{},"unlocked":7,"seenIntros":[],"boosters":{}}',
+    });
     await startLevel(tester);
     expect(find.byKey(const Key('introCard')), findsOneWidget);
     await tester.tap(find.text('Got it'));
@@ -202,11 +189,9 @@ void main() {
   });
 
   testWidgets('gift level grants boosters once', (tester) async {
-    final pc = await pumpApp(
-      tester,
-      FakeAds(),
-      prefs: {ProgressStore.key: '{"v":2,"stars":{},"unlocked":10,"seenIntros":[],"boosters":{}}'},
-    );
+    final pc = await pumpApp(tester, FakeAds(), prefs: {
+      ProgressStore.key: '{"v":2,"stars":{},"unlocked":10,"seenIntros":[],"boosters":{}}',
+    });
     await startLevel(tester);
     expect(find.byKey(const Key('giftCard')), findsOneWidget);
     await tester.tap(find.text('Take the Hammer'));
