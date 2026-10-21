@@ -80,3 +80,12 @@ shared_preferences key `progress`, JSON schema `v: 2`:
 Legacy `progress_v1` is read and migrated on next save. Parser is tolerant
 (bad entries skipped, newer versions read best-effort). Stars never downgrade;
 unlocked never decreases. `ProgressController` (ChangeNotifier) wraps it.
+
+## Continue flow (agreed, supersedes `extraAddNumbers`)
+
+- The lose screen is an **overlay inside the game screen** (Nionios), not a shell route.
+- `GameArgs` gets `final Future<bool> Function()? onRequestRewarded;` (null = no ad offered, e.g. daily or ads unavailable).
+- The overlay's «+1 Add numbers ▶» button calls `onRequestRewarded()`. On `true` (reward callback fired) the game grants **+1 Add numbers on the SAME board** (same cells, same moves, same timer/stars state) and resumes play. On `false` it stays on the overlay.
+- `GameResult.lose` is returned **only when the player exits** from the overlay (Retry/Map). Continue never pops the route.
+- The +1 doesn't count toward `boostersUsed` / stars (Add numbers never do).
+- The shell implements `onRequestRewarded` via `AdService.showRewarded()`. `extraAddNumbers` and the shell lose-screen rewarded button get removed when `m2-gameplay` merges.
