@@ -350,12 +350,6 @@ abstract class AppLocalizations {
   /// **'Map'**
   String get winMap;
 
-  /// No description provided for @loseTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Out of moves'**
-  String get loseTitle;
-
   /// No description provided for @loseRetry.
   ///
   /// In en, this message translates to:

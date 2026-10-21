@@ -212,12 +212,19 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final c = _c;
-    return Scaffold(
-      appBar: AppBar(title: Text(t.level(widget.args.level.id)), centerTitle: true),
-      body: SafeArea(
-        child: c == null
-            ? (_error ? _errorView(t) : _loadingView(t))
-            : Stack(children: [_game(t, c), if (c.status == GameStatus.lost) _loseOverlay(t)]),
+    final lost = c?.status == GameStatus.lost;
+    return PopScope(
+      canPop: !lost,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && lost) _exit(retry: false); // Android back on the lose overlay = Map
+      },
+      child: Scaffold(
+        appBar: AppBar(title: Text(t.level(widget.args.level.id)), centerTitle: true),
+        body: SafeArea(
+          child: c == null
+              ? (_error ? _errorView(t) : _loadingView(t))
+              : Stack(children: [_game(t, c), if (c.status == GameStatus.lost) _loseOverlay(t)]),
+        ),
       ),
     );
   }
@@ -392,54 +399,72 @@ class _BoardGameScreenState extends State<BoardGameScreen> {
 
   Widget _loseOverlay(AppLocalizations t) {
     final theme = Theme.of(context);
+    final c = _c!;
+    final goals = c.state.goals;
+    final done = c.state.goalDone;
+    final noAd = _noAd || widget.args.onRequestRewarded == null;
     return Positioned.fill(
-      child: ColoredBox(
-        color: theme.scaffoldBackgroundColor.withValues(alpha: .85),
-        child: Center(
-          child: Card(
-            key: const Key('lose-overlay'),
-            margin: const EdgeInsets.all(Tk.xl),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Tk.rSheet)),
-            child: Padding(
-              padding: const EdgeInsets.all(Tk.xl),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(t.loseTitle, style: theme.textTheme.titleLarge),
-                  const SizedBox(height: Tk.s),
-                  Text(t.stuckTitle, textAlign: TextAlign.center),
-                  const SizedBox(height: Tk.xl),
-                  SizedBox(
-                    width: double.infinity,
-                    height: Tk.button,
-                    child: FilledButton.icon(
-                      key: const Key('lose-reward'),
-                      onPressed: _rewardBusy ? null : _reward,
-                      icon: const Icon(Icons.play_arrow),
-                      label: Text(t.loseReward),
+      child: Stack(
+        children: [
+          // Barrier: blocks the board, tapping it does not close the overlay.
+          ModalBarrier(
+            key: const Key('lose-barrier'),
+            dismissible: false,
+            color: theme.scaffoldBackgroundColor.withValues(alpha: .85),
+          ),
+          Center(
+            child: Card(
+              key: const Key('lose-overlay'),
+              margin: const EdgeInsets.all(Tk.xl),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Tk.rSheet)),
+              child: Padding(
+                padding: const EdgeInsets.all(Tk.xl),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(t.stuckTitle, key: const Key('lose-title'), style: theme.textTheme.titleLarge),
+                    const SizedBox(height: Tk.m),
+                    Wrap(
+                      spacing: Tk.s,
+                      runSpacing: Tk.s,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        for (var i = 0; i < goals.length; i++)
+                          if (done[i] < goals[i].count)
+                            Chip(key: Key('lose-goal-$i'), label: Text(_Hud.chip(t, goals[i], done[i]))),
+                      ],
                     ),
-                  ),
-                  if (_noAd) ...[
+                    const SizedBox(height: Tk.xl),
+                    SizedBox(
+                      width: double.infinity,
+                      height: Tk.button,
+                      child: FilledButton(
+                        key: const Key('lose-retry'),
+                        onPressed: () => _exit(retry: true),
+                        child: Text(t.retry),
+                      ),
+                    ),
                     const SizedBox(height: Tk.s),
-                    Text(t.noAdAvailable, key: const Key('lose-no-ad'), textAlign: TextAlign.center),
-                  ],
-                  const SizedBox(height: Tk.m),
-                  SizedBox(
-                    width: double.infinity,
-                    height: Tk.button,
-                    child: OutlinedButton(
-                      key: const Key('lose-retry'),
-                      onPressed: () => _exit(retry: true),
-                      child: Text(t.loseRetry),
+                    SizedBox(
+                      width: double.infinity,
+                      height: Tk.button,
+                      child: OutlinedButton.icon(
+                        key: const Key('lose-reward'),
+                        onPressed: noAd || _rewardBusy ? null : _reward,
+                        icon: noAd ? const SizedBox.shrink() : const Icon(Icons.play_arrow),
+                        label: noAd
+                            ? Text(t.noAdAvailable, key: const Key('lose-no-ad'), textAlign: TextAlign.center)
+                            : Text(t.loseReward),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: Tk.s),
-                  TextButton(key: const Key('lose-map'), onPressed: () => _exit(retry: false), child: Text(t.winMap)),
-                ],
+                    const SizedBox(height: Tk.xs),
+                    TextButton(key: const Key('lose-map'), onPressed: () => _exit(retry: false), child: Text(t.winMap)),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

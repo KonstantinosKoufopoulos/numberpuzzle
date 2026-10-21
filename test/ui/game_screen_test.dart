@@ -255,6 +255,7 @@ void main() {
     expect(h.popped, isFalse);
 
     answer = true;
+    await tester.pump(kNoAdMessageDuration); // button re-enabled
     await tester.tap(find.byKey(const Key('lose-reward')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('lose-overlay')), findsNothing);
@@ -286,7 +287,7 @@ void main() {
     });
   }
 
-  testWidgets('no-ad text in the overlay auto-hides and hides on next action', (tester) async {
+  testWidgets('lose overlay: no-ad disables the reward button, then re-enables after a few seconds', (tester) async {
     await _pump(
       tester,
       level: _level(const [Goal(GoalType.pairsTen, 1)], add: 0),
@@ -296,22 +297,59 @@ void main() {
       ]),
       rewarded: () async => false,
     );
+    ButtonStyleButton reward() => tester.widget<ButtonStyleButton>(find.byKey(const Key('lose-reward')));
+    expect(reward().onPressed, isNotNull);
     await tester.tap(find.byKey(const Key('lose-reward')));
     await tester.pump();
     expect(find.byKey(const Key('lose-no-ad')), findsOneWidget);
+    expect(find.text('No ad available right now'), findsOneWidget);
+    expect(reward().onPressed, isNull);
     await tester.pump(kNoAdMessageDuration);
     expect(find.byKey(const Key('lose-no-ad')), findsNothing);
-    await tester.tap(find.byKey(const Key('lose-reward')));
-    await tester.pump();
+    expect(reward().onPressed, isNotNull);
+  });
+
+  testWidgets('lose overlay hierarchy: title, unmet goals, filled Retry, outlined reward, text Map', (tester) async {
+    await _pump(
+      tester,
+      level: _level(const [Goal(GoalType.pairsTen, 1), Goal(GoalType.star, 5)], add: 0),
+      board: Board(3, const [
+        Cell(value: 1, item: CellItem.star),
+        Cell.n(2),
+        Cell.n(4),
+        Cell.n(3),
+        Cell(obstacle: Obstacle.stone()),
+        Cell.n(5),
+      ]),
+    );
+    expect(find.text('No pairs left'), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const Key('lose-goal-1')), matching: find.text('★ 0/5')), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const Key('lose-retry')), matching: find.text('Retry')), findsOneWidget);
+    expect(tester.widget(find.byKey(const Key('lose-retry'))), isA<FilledButton>());
+    expect(tester.widget(find.byKey(const Key('lose-reward'))), isA<OutlinedButton>());
+    expect(tester.widget(find.byKey(const Key('lose-map'))), isA<TextButton>());
+    // No callback => disabled with the no-ad label.
     expect(find.byKey(const Key('lose-no-ad')), findsOneWidget);
-    // Next action (another reward attempt) clears it first, then re-shows.
-    await tester.pump(kNoAdMessageDuration - const Duration(seconds: 1));
-    await tester.tap(find.byKey(const Key('lose-reward')));
-    await tester.pump();
-    await tester.pump(const Duration(seconds: 2));
-    expect(find.byKey(const Key('lose-no-ad')), findsOneWidget, reason: 'timer restarted');
-    await tester.pump(kNoAdMessageDuration);
-    expect(find.byKey(const Key('lose-no-ad')), findsNothing);
+  });
+
+  testWidgets('lose overlay: barrier tap does not close; Android back = Map', (tester) async {
+    final h = await _pump(
+      tester,
+      level: _level(const [Goal(GoalType.pairsTen, 1)], add: 0),
+      board: Board.fromRows([
+        [1, 2, 4],
+        [3, 0, 5],
+      ]),
+    );
+    await tester.tapAt(const Offset(5, 300));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('lose-overlay')), findsOneWidget);
+    expect(h.popped, isFalse);
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(h.popped, isTrue);
+    expect(h.result!.won, isFalse);
+    expect(h.result!.retry, isFalse);
   });
 
   testWidgets('booster ▶ no-ad snackbar hides on the next board tap and on its own', (tester) async {

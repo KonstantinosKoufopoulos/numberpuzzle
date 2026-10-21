@@ -155,9 +155,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get winMap => 'Χάρτης';
 
   @override
-  String get loseTitle => 'Τέλος κινήσεων';
-
-  @override
   String get loseRetry => 'Ξαναπαίξε';
 
   @override
@@ -285,7 +282,7 @@ class AppLocalizationsEl extends AppLocalizations {
       'Δεν υπάρχουν ζευγάρια: πάτησε Προσθήκη αριθμών.';
 
   @override
-  String get stuckTitle => 'Δεν υπάρχουν ζευγάρια';
+  String get stuckTitle => 'Δεν μένουν ζευγάρια';
 
   @override
   String tutStep(int i) {

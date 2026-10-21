@@ -152,9 +152,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get winMap => 'Map';
 
   @override
-  String get loseTitle => 'Out of moves';
-
-  @override
   String get loseRetry => 'Play again';
 
   @override

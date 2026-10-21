@@ -93,7 +93,6 @@
   "winStarsRule": "0 boosters → 3★ · 1 → 2★ · 2+ → 1★",
   "winNext": "Next level",
   "winMap": "Map",
-  "loseTitle": "Out of moves",
   "loseRetry": "Play again",
   "loseReward": "Video: +1 Add numbers",
   "debugLose": "Lose (debug)",
