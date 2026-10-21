@@ -53,6 +53,12 @@ Font Manrope (SIL OFL 1.1) is planned (TODO, not bundled yet).
 * `--dart-define=ADS=false` disables the SDK entirely.
 * Real AdMob ids ONLY in a release built with `--dart-define=ADS_REAL=true`;
   every other build (debug, profile, plain release) uses Google test ids.
+* Check a built artifact (builds nothing; needs `unzip`), e.g. in CI after each build:
+  `tool/check_ad_ids.sh build/app/outputs/flutter-apk/app-release.apk` fails (exit 1)
+  if the real AdMob id is in a plain/debug build;
+  `tool/check_ad_ids.sh --real build/app/outputs/bundle/release/app-release.aab`
+  fails if an `ADS_REAL=true` release is missing it. This guards the
+  `build.gradle` dart-defines parsing.
 
 ## Export
 * Playtest (test ads): `flutter build apk --release --split-per-abi`
