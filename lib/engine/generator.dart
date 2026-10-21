@@ -152,18 +152,19 @@ class SeededBoardGenerator implements BoardGenerator {
   /// Generates and verifies; throws [StateError] (no fallback) when no board
   /// passes within [maxReseeds] seeds / [levelNodeBudget] nodes.
   GeneratedLevel generateDetailed(Level level) {
-    if (level.digitFlip) {
+    if (level.digitFlip || level.boardFrom != null) {
       final g = generateDetailed(Level(
-        id: level.id,
+        id: level.boardFrom ?? level.id,
         columns: level.columns,
         rows: level.rows,
         seed: level.seed,
-        goals: flipGoals(level.goals),
+        goals: level.digitFlip ? flipGoals(level.goals) : level.goals,
         layers: level.layers,
-        digitWeights: flipWeights(level.digitWeights),
+        digitWeights: level.digitFlip ? flipWeights(level.digitWeights) : level.digitWeights,
         addNumbersLimit: level.addNumbersLimit,
         tier: level.tier,
       ));
+      if (!level.digitFlip) return g;
       // Positions are unchanged, so the verified line stays valid.
       return GeneratedLevel(
         board: flipBoardDigits(g.board),

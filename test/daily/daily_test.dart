@@ -24,8 +24,8 @@ void main() {
     final c = dailyLevel(DateTime(2026, 10, 22), _pack, _all)!;
     expect(a.id, 20261021);
     expect(a.seed, b.seed);
+    expect(c.id, isNot(a.id));
     expect(a.goals.map((g) => g.toJson()), b.goals.map((g) => g.toJson()));
-    expect(c.seed, isNot(a.seed));
     expect(a.validate(), isEmpty);
     expect(a.introduces, isNull);
     expect(a.gift, isNull);
@@ -103,7 +103,7 @@ void main() {
           .firstWhere((d) => dailyDigitFlip(d) && dailyLevel(d, _pack, _all)!.goals.any((g) => g.type == GoalType.number));
       final l = dailyLevel(day, _pack, _all)!;
       final plain = Level(
-        id: l.id,
+        id: l.boardFrom!,
         columns: l.columns,
         rows: l.rows,
         seed: l.seed,
@@ -128,29 +128,27 @@ void main() {
       }
     });
 
-    test('solver proves daily boards solvable over many dates (flipped and not)', () {
+    test('365 consecutive dates: map level board (+flip) always builds, both variants, solver sample', () {
       const gen = SeededBoardGenerator();
       const solver = DfsSolver(nodeBudget: 200000);
-      var flipped = 0, checked = 0;
-      for (var d = 0; d < 40; d++) {
-        final l = dailyLevel(DateTime(2026, 9, 1).add(Duration(days: d * 3)), _pack, _all)!;
-        final Board b;
-        try {
-          b = gen.generate(l);
-        } on StateError {
-          // Known generator limit for some daily seeds (independent of the
-          // flip: the un-flipped variant fails identically); not a flip issue.
-          continue;
-        }
-        checked++;
-        expect(solver.solve(b, l.goals).solvable, isTrue, reason: 'daily ${l.id} flip=${l.digitFlip}');
-        // The other variant of the same board (flip applied/undone) too.
-        final Board other = flipBoardDigits(b);
-        expect(solver.solve(other, flipGoals(l.goals)).solvable, isTrue, reason: 'daily ${l.id} other variant');
+      final byId = {for (final l in _pack) l.id: l};
+      final mapBoards = <int, Board>{};
+      final solved = <String>{};
+      var flipped = 0;
+      for (var d = 0; d < 365; d++) {
+        final l = dailyLevel(DateTime(2026, 1, 1).add(Duration(days: d)), _pack, _all)!;
+        final t = byId[l.boardFrom]!;
+        expect(l.seed, t.seed, reason: 'no date-derived seed');
+        final mapBoard = mapBoards[t.id] ??= gen.generate(t);
+        final b = gen.generate(l);
+        expect(b.cells, (l.digitFlip ? flipBoardDigits(mapBoard) : mapBoard).cells, reason: '${l.id} L${t.id} ${l.digitFlip}');
         if (l.digitFlip) flipped++;
+        if (solved.add('${t.id}-${l.digitFlip}')) {
+          expect(solver.solve(b, l.goals).solvable, isTrue, reason: 'daily ${l.id} (L${t.id}) flip=${l.digitFlip}');
+        }
       }
-      expect(flipped, greaterThan(0));
-      expect(checked, greaterThanOrEqualTo(30));
+      expect(flipped, inInclusiveRange(1, 364), reason: 'both variants appear');
+      expect(solved.length, greaterThan(mapBoards.length), reason: 'solver ran on both variants');
     });
   });
 

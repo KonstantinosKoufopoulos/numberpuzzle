@@ -32,10 +32,12 @@ bool dailyDigitFlip(DateTime day) {
   return h & 1 == 1;
 }
 
-/// The daily level for [day]: goals/layers/size of a mid map level (8–20)
-/// that the player has already completed ([completedLevels]), picked by the
-/// date, with a date-derived seed and a date-seeded digit flip (number goals
-/// and digit weights flipped consistently). Same date + same completed set ⇒
+/// The daily level for [day]: a mid map level (8–20) that the player has
+/// already completed ([completedLevels]), picked by the date. Its board is
+/// exactly that map level's own validated board (same id/seed, see
+/// [Level.boardFrom]) with a date-seeded digit flip (number goals and digit
+/// weights flipped consistently). No new board is generated, so it cannot
+/// fail where the map level doesn't. Same date + same completed set ⇒
 /// same level. Its id is the day key (yyyymmdd), which never collides with
 /// map ids. Returns null while locked ([dailyUnlocked] is false).
 Level? dailyLevel(DateTime day, List<Level> pack, Iterable<int> completedLevels) {
@@ -59,13 +61,14 @@ Level? dailyLevel(DateTime day, List<Level> pack, Iterable<int> completedLevels)
     id: key,
     columns: t.columns,
     rows: t.rows,
-    seed: key * 31 + 7,
+    seed: t.seed,
     goals: flip ? flipGoals(t.goals) : t.goals,
     layers: t.layers,
     digitWeights: flip ? flipWeights(t.digitWeights) : t.digitWeights,
     addNumbersLimit: t.addNumbersLimit,
     tier: t.tier,
     digitFlip: flip,
+    boardFrom: t.id,
   );
 }
 

@@ -78,6 +78,7 @@ class Level {
     this.tier = 1,
     this.note,
     this.digitFlip = false,
+    this.boardFrom,
   });
 
   final int id;
@@ -101,10 +102,14 @@ class Level {
   final int tier;
   final String? note;
 
-  /// Daily variation: the board is generated for the un-flipped level
-  /// ([goals]/[digitWeights] mapped back with d -> 10 - d) and then every
-  /// digit is flipped. [goals] and [digitWeights] are already flipped.
+  /// Daily variation: every digit of the board is flipped (d -> 10 - d).
+  /// [goals] and [digitWeights] are already flipped.
   final bool digitFlip;
+
+  /// Daily: build exactly the board of map level [boardFrom] (its own id and
+  /// fixed seed, already validated), then apply [digitFlip]. Never generates
+  /// a new board.
+  final int? boardFrom;
 
   int get cellCount => columns * rows;
 
@@ -135,6 +140,7 @@ class Level {
       tier: j['tier'] as int? ?? 1,
       note: j['note'] as String?,
       digitFlip: j['digitFlip'] as bool? ?? false,
+      boardFrom: j['boardFrom'] as int?,
     );
   }
 
@@ -152,6 +158,7 @@ class Level {
         if (introduces != null) 'introduces': introduces,
         if (note != null) 'note': note,
         if (digitFlip) 'digitFlip': true,
+        if (boardFrom != null) 'boardFrom': boardFrom,
       };
 
   /// Returns a list of human-readable problems; empty = valid.
